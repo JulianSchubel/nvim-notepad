@@ -34,4 +34,4 @@ local function load_file_buffer(path)
   return buf
 end
 
-return Module
+return Module, load_file_buffer
