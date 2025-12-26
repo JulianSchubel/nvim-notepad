@@ -59,7 +59,7 @@ local function open_right_split(buf, opts)
     vim.api.nvim_win_set_buf(Module.win, buf)
 
     -- Clear state if window is closed
-    vim.api.nvim_create_autocmd("NotepadWindowClosed", {
+    vim.api.nvim_create_autocmd("WinClosed", {
         once = true,
         callback = function()
             Module.win = nil
