@@ -7,9 +7,7 @@ Module.defaults = {
     split_width = 40,
     border = "rounded",
     files = {
-        inbox = vim.fn.stdpath("data") .. "/notepad/inbox.md",
-        work = vim.fn.stdpath("data") .. "/notepad/work.md",
-        personal = vim.fn.stdpath("data") .. "/notepad/personal.md",
+        notepad = vim.fn.stdpath("data") .. "/notepad/notepad.md",
         today = function()
             return vim.fn.stdpath("data")
                 .. "/notepad/"

@@ -18,7 +18,7 @@ function Module.open(opts)
                 local name = state.get_selected_entry().value
                 actions.close(bufnr)
 
-                -- Delegate to core logic (toggle-safe)
+                -- Delegate to core logic
                 require("notepad").open(name)
             end)
 
