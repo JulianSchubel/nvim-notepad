@@ -57,17 +57,13 @@ local function open_float(buf, opts)
 end
 
 local function open_right_split(buf, opts)
-    if Module.window and vim.api.nvim_win_is_valid(Module.window) then
-        vim.api.nvim_set_current_win(Module.window)
-        return
-    end
-
     vim.cmd("botright vsplit")
     vim.cmd("vertical resize " .. opts.split_width)
 
     Module.window = vim.api.nvim_get_current_win()
     vim.api.nvim_win_set_buf(Module.window, buf)
 
+    vim.notify("Window: " .. Module.window .. "Path: " .. Module.filepath, vim.log.levels.DEBUG)
     vim.api.nvim_create_autocmd("WinClosed", {
         once = true,
         callback = function()
@@ -79,21 +75,23 @@ end
 
 function Module.open(buf, path, opts)
     -- Window already exists
-    print(Module.window);
-    if Module.window and vim.api.nvim_win_is_valid(Module.window) then
-        -- Same file then don't do anything
-        if Module.filepath == path then
-            return
-        end
-
-        -- Different file then reuse same window
-        Module.window = vim.api.nvim_win_set_buf(Module.window, buf)
-        vim.api.nvim_set_current_win(Module.window)
-
-        -- Update the referenced filepath
-        Module.filepath = path
+    if Module.window ~= nil then
         return
     end
+--    if Module.window and vim.api.nvim_win_is_valid(Module.window) then
+--        -- Same file then don't do anything
+--        if Module.filepath == path then
+--            return
+--        end
+--
+--        -- Different file then reuse same window
+--        Module.window = vim.api.nvim_win_set_buf(Module.window, buf)
+--        vim.api.nvim_set_current_win(Module.window)
+--
+--        -- Update the referenced filepath
+--        Module.filepath = path
+--        return
+--    end
 
     -- No window currently exists
     Module.filepath = path
