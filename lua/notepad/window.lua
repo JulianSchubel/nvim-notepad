@@ -1,6 +1,17 @@
+--[[
+Toggle is a comparison, not a state.
+Compare:
+    what is open vs what is requested
+
+Only then decide:
+    close
+    reuse
+    create
+--]]
 local Module = {
     win = nil,
     prev_win = nil,
+    current_displayed_buffer = nil,
 }
 
 local function load_file_buffer(path)
@@ -43,30 +54,6 @@ local function open_float(buf, opts)
     vim.wo[Module.win].wrap = true
     vim.wo[Module.win].linebreak = true
 
-    -- Ensure window state resets on manual close
-    vim.api.nvim_create_autocmd("WinClosed", {
-        once = true,
-        callback = function()
-            Module.win = nil
-        end,
-    })
-end
-
-local function open_right_split(buf, opts)
-    -- Reuse split window
-    if Module.win and vim.api.nvim_win_is_valid(Module.win) then
-        vim.api.nvim_win_set_buf(Module.win, buf)
-        vim.api.nvim_set_current_win(Module.win)
-        return
-    end
-
-    -- Create split once
-    vim.cmd("botright vsplit")
-    vim.cmd("vertical resize " .. opts.split_width)
-
-    Module.win = vim.api.nvim_get_current_win()
-    vim.api.nvim_win_set_buf(Module.win, buf)
-
     -- Clear state if window is closed
     vim.api.nvim_create_autocmd("WinClosed", {
         once = true,
@@ -76,15 +63,41 @@ local function open_right_split(buf, opts)
     })
 end
 
+local function open_right_split(buf, opts)
+    vim.cmd("botright vsplit")
+    vim.cmd("vertical resize " .. opts.split_width)
+
+    Module.win = vim.api.nvim_get_current_win()
+    vim.api.nvim_win_set_buf(Module.win, buf)
+
+    vim.api.nvim_create_autocmd("WinClosed", {
+        once = true,
+        callback = function()
+            Module.win = nil
+            Module.buf = nil
+        end,
+    })
+end
+
 function Module.open(buf, opts)
-    -- Toggle behavior
+    -- If window exists
     if Module.win and vim.api.nvim_win_is_valid(Module.win) then
-        Module.close()
+        -- Same buffer then toggle (close)
+        if Module.buf == buf then
+            Module.close()
+            return
+        end
+
+        -- Different buffer then reuse window
+        vim.api.nvim_win_set_buf(Module.win, buf)
+        vim.api.nvim_set_current_win(Module.win)
+        Module.buf = buf
         return
     end
 
-    -- Remember where we came from
+    -- Window does not exist then create it
     Module.prev_win = vim.api.nvim_get_current_win()
+    Module.buf = buf
 
     if opts.layout == "right" then
         return open_right_split(buf, opts)
@@ -96,8 +109,10 @@ end
 function Module.close()
     if Module.win and vim.api.nvim_win_is_valid(Module.win) then
         vim.api.nvim_win_close(Module.win, true)
-        Module.win = nil
     end
+
+    Module.win = nil
+    Module.buf = nil
 
     if Module.prev_win and vim.api.nvim_win_is_valid(Module.prev_win) then
         vim.api.nvim_set_current_win(Module.prev_win)
