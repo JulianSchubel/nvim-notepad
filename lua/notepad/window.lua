@@ -14,27 +14,13 @@ Only then decide:
     create
 --]]
 local Module = {
-    win = nil,
-    prev_win = nil,
-    current_displayed_buffer = nil,
-    path = nil,
+    window = nil,
+    filepath = nil,
 }
 
-local function load_file_buffer(path)
-    -- Check if buffer already exists
-    local buf = vim.fn.bufnr(path, false)
-
-    if buf == -1 then
-        buf = vim.fn.bufadd(path)
-        vim.fn.bufload(buf)
-    end
-
-    return buf
-end
-
 local function open_float(buf, opts)
-    if Module.win and vim.api.nvim_win_is_valid(Module.win) then
-        vim.api.nvim_set_current_win(Module.win)
+    if Module.window and vim.api.nvim_win_is_valid(Module.window) then
+        vim.api.nvim_set_current_win(Module.window)
         return
     end
 
@@ -43,7 +29,7 @@ local function open_float(buf, opts)
     local row = math.floor((vim.o.lines - height) / 2)
     local col = math.floor((vim.o.columns - width) / 2)
 
-    Module.win = vim.api.nvim_open_win(buf, true, {
+    Module.window = vim.api.nvim_open_win(buf, true, {
         relative = "editor",
         row = row,
         col = col,
@@ -57,14 +43,15 @@ local function open_float(buf, opts)
     vim.bo[buf].bufhidden = "hide"
     vim.bo[buf].modifiable = true
 
-    vim.wo[Module.win].wrap = true
-    vim.wo[Module.win].linebreak = true
+    vim.wo[Module.window].wrap = true
+    vim.wo[Module.window].linebreak = true
 
     -- Clear state if window is closed
     vim.api.nvim_create_autocmd("WinClosed", {
         once = true,
         callback = function()
-            Module.win = nil
+            Module.window = nil
+            Module.filepath = nil
         end
     })
 end
@@ -73,62 +60,53 @@ local function open_right_split(buf, opts)
     vim.cmd("botright vsplit")
     vim.cmd("vertical resize " .. opts.split_width)
 
-    Module.win = vim.api.nvim_get_current_win()
-    vim.api.nvim_win_set_buf(Module.win, buf)
+    Module.window = vim.api.nvim_get_current_win()
+    vim.api.nvim_win_set_buf(Module.window, buf)
 
     vim.api.nvim_create_autocmd("WinClosed", {
         once = true,
         callback = function()
-            Module.win = nil
-            Module.current_displayed_buffer = nil
+            Module.window = nil
+            Module.filepath = nil
         end
     })
 end
 
 function Module.open(buf, path, opts)
     -- Window already exists
-    if Module.win and vim.api.nvim_win_is_valid(Module.win) then
-        -- Same file then toggle
-        if Module.path == path then
-            Module.close()
+    if Module.window and vim.api.nvim_win_is_valid(Module.window) then
+        -- Same file then don't do anything
+        if Module.filepath == path then
             return
         end
 
         -- Different file then reuse same window
-        Module.prev_win = Module.win
-        Module.win = vim.api.nvim_win_set_buf(Module.win, buf)
-        vim.api.nvim_set_current_win(Module.win)
+        Module.window = vim.api.nvim_win_set_buf(Module.window, buf)
+        vim.api.nvim_set_current_win(Module.window)
 
-        Module.current_displayed_buffer = buf
-        Module.path = path
+        -- Update the referenced filepath
+        Module.filepath = path
         return
     end
 
-    -- Create window
-    Module.prev_win = vim.api.nvim_get_current_win()
-    Module.current_displayed_buffer = buf
-    Module.path = path
+    -- No window currently exists
+    Module.filepath = path
 
+    -- Determine which window to use based on the configured layout
     if opts.layout == "right" then
         return open_right_split(buf, opts)
+    else
+        return open_float(buf, opts)
     end
-
-    return open_float(buf, opts)
 end
 
 function Module.close()
-    if Module.win and vim.api.nvim_win_is_valid(Module.win) then
-        vim.api.nvim_win_close(Module.win, true)
+    --Only close a window if one is open and it is valid
+    if Module.window and vim.api.nvim_win_is_valid(Module.window) then
+        vim.api.nvim_win_close(Module.window, true)
     end
-
-    Module.win = nil
-    Module.current_displayed_buffer = nil
-    Module.path = nil
-
-    if Module.prev_win and vim.api.nvim_win_is_valid(Module.prev_win) then
-        vim.api.nvim_set_current_win(Module.prev_win)
-        Module.prev_win = nil
-    end
+--    Module.window = nil
+--    Module.filepath = nil
 end
 
 return Module
