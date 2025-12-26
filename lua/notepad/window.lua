@@ -1,5 +1,10 @@
 --[[
 Toggle is a comparison, not a state.
+
+Recall:
+    file is an identity
+    buffer is an instance
+
 Compare:
     what is open vs what is requested
 
@@ -58,9 +63,7 @@ local function open_float(buf, opts)
     -- Clear state if window is closed
     vim.api.nvim_create_autocmd("WinClosed", {
         once = true,
-        callback = function()
-            Module.win = nil
-        end,
+        callback = Module.close(),
     })
 end
 
@@ -73,11 +76,7 @@ local function open_right_split(buf, opts)
 
     vim.api.nvim_create_autocmd("WinClosed", {
         once = true,
-        callback = function()
-            Module.win = nil
-            Module.buf = nil
-            Module.path = nil
-        end,
+        callback = Module.close(),
     })
 end
 
@@ -91,17 +90,18 @@ function Module.open(buf, path, opts)
         end
 
         -- Different file then reuse same window
-        vim.api.nvim_win_set_buf(Module.win, buf)
+        Module.prev_win = Module.win
+        Module.win = vim.api.nvim_win_set_buf(Module.win, buf)
         vim.api.nvim_set_current_win(Module.win)
 
-        Module.buf = buf
+        Module.current_displayed_buffer = buf
         Module.path = path
         return
     end
 
     -- Create window
     Module.prev_win = vim.api.nvim_get_current_win()
-    Module.buf = buf
+    Module.current_displayed_buffer = buf
     Module.path = path
 
     if opts.layout == "right" then
@@ -117,7 +117,7 @@ function Module.close()
     end
 
     Module.win = nil
-    Module.buf = nil
+    Module.current_displayed_buffer = nil
     Module.path = nil
 
     if Module.prev_win and vim.api.nvim_win_is_valid(Module.prev_win) then

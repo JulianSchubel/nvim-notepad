@@ -10,7 +10,7 @@ function Module.setup(opts)
 end
 
 function Module.open(name)
-    local path = files.resolve(name or "notepad", config.opts)
+    local path = files.resolve(name, config.opts)
     local buf = files.load_file_buffer(path)
     window.open(buf, path, config.opts)
 end
