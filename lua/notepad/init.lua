@@ -11,7 +11,8 @@ end
 
 function Module.open(name)
     local path = files.resolve(name or "inbox", config.opts)
-    window.open(path, config.opts)
+    local buf = files.load_buffer(path);
+    window.open(buf, config.opts)
 end
 
 Module.toggle = tasks.toggle

@@ -12,7 +12,7 @@ local function load_file_buffer(path)
   return buf
 end
 
-function Module.open(path, opts)
+function Module.open(buf, opts)
     --If duplicate windows is not enabled in the configuration reuse the
     --existing window
     if not opts.duplicate_windows then
@@ -20,7 +20,6 @@ function Module.open(path, opts)
             vim.api.nvim_set_current_win(Module.win)
             return
         end
-        local buf = load_file_buffer(path)
     end
 
 --    vim.cmd("edit " .. vim.fn.fnameescape(path))
