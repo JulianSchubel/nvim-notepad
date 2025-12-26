@@ -64,7 +64,6 @@ local function open_right_split(buf, opts)
         vim.cmd("vertical resize " .. opts.split_width)
     end
 
-    Module.window = vim.api.nvim_get_current_win()
     vim.api.nvim_win_set_buf(Module.window, buf)
 
     vim.api.nvim_create_autocmd("WinClosed", {
@@ -77,20 +76,21 @@ local function open_right_split(buf, opts)
 end
 
 function Module.open(buf, path, opts)
---    if Module.window and vim.api.nvim_win_is_valid(Module.window) then
---        -- Same file then don't do anything
---        if Module.filepath == path then
---            return
---        end
---
---        -- Different file then reuse same window
---        Module.window = vim.api.nvim_win_set_buf(Module.window, buf)
---        vim.api.nvim_set_current_win(Module.window)
---
---        -- Update the referenced filepath
---        Module.filepath = path
---        return
---    end
+    if Module.window and vim.api.nvim_win_is_valid(Module.window) then
+        if Module.filepath == path then
+            -- Same file then don't do anything
+            return
+        else
+            -- Different file then reuse same window
+            Module.window = vim.api.nvim_win_set_buf(Module.window, buf)
+            vim.api.nvim_set_current_win(Module.window)
+        end
+
+
+        -- Update the referenced filepath
+        Module.filepath = path
+        return
+    end
 
     -- No window currently exists
     Module.filepath = path
