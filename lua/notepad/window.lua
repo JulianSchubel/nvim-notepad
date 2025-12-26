@@ -1,17 +1,18 @@
 local Module = {
-    win = Nil,
+    win = nil,
+    prev_win = nil,
 }
 
 local function load_file_buffer(path)
-  -- Check if buffer already exists
-  local buf = vim.fn.bufnr(path, false)
+    -- Check if buffer already exists
+    local buf = vim.fn.bufnr(path, false)
 
-  if buf == -1 then
-    buf = vim.fn.bufadd(path)
-    vim.fn.bufload(buf)
-  end
+    if buf == -1 then
+        buf = vim.fn.bufadd(path)
+        vim.fn.bufload(buf)
+    end
 
-  return buf
+    return buf
 end
 
 local function open_float(buf, opts)
@@ -26,13 +27,13 @@ local function open_float(buf, opts)
     local col = math.floor((vim.o.columns - width) / 2)
 
     Module.win = vim.api.nvim_open_win(buf, true, {
-      relative = "editor",
-      row = row,
-      col = col,
-      width = width,
-      height = height,
-      style = "minimal",
-      border = opts.border,
+        relative = "editor",
+        row = row,
+        col = col,
+        width = width,
+        height = height,
+        style = "minimal",
+        border = opts.border,
     })
 
     vim.bo[buf].filetype = "markdown"
@@ -41,6 +42,14 @@ local function open_float(buf, opts)
 
     vim.wo[Module.win].wrap = true
     vim.wo[Module.win].linebreak = true
+
+    -- Ensure window state resets on manual close
+    vim.api.nvim_create_autocmd("WinClosed", {
+        once = true,
+        callback = function()
+            Module.win = nil
+        end,
+    })
 end
 
 local function open_right_split(buf, opts)
@@ -68,11 +77,32 @@ local function open_right_split(buf, opts)
 end
 
 function Module.open(buf, opts)
+    -- Toggle behavior
+    if Module.win and vim.api.nvim_win_is_valid(Module.win) then
+        Module.close()
+        return
+    end
+
+    -- Remember where we came from
+    Module.prev_win = vim.api.nvim_get_current_win()
+
     if opts.layout == "right" then
         return open_right_split(buf, opts)
     end
 
     return open_float(buf, opts)
+end
+
+function Module.close()
+    if Module.win and vim.api.nvim_win_is_valid(Module.win) then
+        vim.api.nvim_win_close(Module.win, true)
+        Module.win = nil
+    end
+
+    if Module.prev_win and vim.api.nvim_win_is_valid(Module.prev_win) then
+        vim.api.nvim_set_current_win(Module.prev_win)
+        Module.prev_win = nil
+    end
 end
 
 return Module
