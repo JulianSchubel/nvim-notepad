@@ -1,4 +1,6 @@
-local Module = {}
+local Module = {
+    win = Nil,
+}
 
 local function load_file_buffer(path)
   -- Check if buffer already exists
@@ -13,17 +15,10 @@ local function load_file_buffer(path)
 end
 
 local function open_float(buf, opts)
-    --If duplicate windows is not enabled in the configuration reuse the
-    --existing window
-    if not opts.duplicate_windows then
-        if Module.win and vim.api.nvim_win_is_valid(Module.win) then
-            vim.api.nvim_set_current_win(Module.win)
-            return
-        end
+    if Module.win and vim.api.nvim_win_is_valid(Module.win) then
+        vim.api.nvim_set_current_win(Module.win)
+        return
     end
-
---    vim.cmd("edit " .. vim.fn.fnameescape(path))
---    local buf = vim.api.nvim_get_current_buf()
 
     local width = math.floor(vim.o.columns * opts.width_ratio)
     local height = math.floor(vim.o.lines * opts.height_ratio)
@@ -49,12 +44,27 @@ local function open_float(buf, opts)
 end
 
 local function open_right_split(buf, opts)
+    -- Reuse split window
+    if Module.win and vim.api.nvim_win_is_valid(Module.win) then
+        vim.api.nvim_win_set_buf(Module.win, buf)
+        vim.api.nvim_set_current_win(Module.win)
+        return
+    end
+
+    -- Create split once
     vim.cmd("botright vsplit")
     vim.cmd("vertical resize " .. opts.split_width)
-    local win = vim.api.nvim_get_current_win()
-    vim.api.nvim_win_set_buf(win, buf)
 
-    return win
+    Module.win = vim.api.nvim_get_current_win()
+    vim.api.nvim_win_set_buf(Module.win, buf)
+
+    -- Clear state if window is closed
+    vim.api.nvim_create_autocmd("NotepadWindowClosed", {
+        once = true,
+        callback = function()
+            Module.win = nil
+        end,
+    })
 end
 
 function Module.open(buf, opts)
