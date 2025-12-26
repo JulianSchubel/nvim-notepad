@@ -21,3 +21,5 @@ function Module.resolution(name, opts)
 
     return path
 end
+
+return Module
