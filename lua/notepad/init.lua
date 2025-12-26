@@ -10,8 +10,8 @@ function Module.setup(opts)
 end
 
 function Module.open(name)
-    local path = files.resolve(name, config.opts)
-    local buf = files.load_file_buffer(path)
+    local path = files.resolve(name or "today", config.opts)
+    local buf = files.load_buffer(path)
     window.open(buf, path, config.opts)
 end
 
