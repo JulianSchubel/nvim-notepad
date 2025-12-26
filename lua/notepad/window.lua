@@ -23,8 +23,8 @@ function Module.open(path, opts)
         local buf = load_file_buffer(path)
     end
 
-    vim.cmd("edit " .. vim.fn.fnameescape(path))
-    local buf = vim.api.nvim_get_current_buf()
+--    vim.cmd("edit " .. vim.fn.fnameescape(path))
+--    local buf = vim.api.nvim_get_current_buf()
 
     local width = math.floor(vim.o.columns * opts.width_ratio)
     local height = math.floor(vim.o.lines * opts.height_ratio)
