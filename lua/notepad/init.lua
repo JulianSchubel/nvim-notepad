@@ -11,7 +11,7 @@ end
 
 function Module.open(name)
     local path = files.resolve(name or "inbox", config.opts)
-    local buf = files.load_buffer(path);
+    local buf = files.load_file_buffer(path);
     window.open(buf, config.opts)
 end
 
