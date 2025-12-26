@@ -16,8 +16,7 @@ function Module.open(name)
     window.open(buf, path, config.opts)
 end
 
-
---Module.toggle = tasks.toggle
---Module.archive = function() tasks.archive(config.opts) end
+Module.toggle = tasks.toggle
+Module.archive = function() tasks.archive(config.opts) end
 
 return Module

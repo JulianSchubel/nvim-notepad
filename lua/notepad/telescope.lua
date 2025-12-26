@@ -10,14 +10,13 @@ function Module.open(opts)
     local keys = vim.tbl_keys(opts.files)
 
     pickers.new({}, {
-        prompt_title = "Notepads",
+        prompt_title = "Note",
         finder = finders.new_table(keys),
         sorter = conf.generic_sorter({}),
         attach_mappings = function(_, map)
             map("i", "<CR>", function(bufnr)
                 local name = state.get_selected_entry().value
                 actions.close(bufnr)
-
                 -- Delegate to core logic
                 require("notepad").open(name)
             end)
