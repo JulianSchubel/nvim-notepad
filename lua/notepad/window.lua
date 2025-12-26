@@ -57,6 +57,11 @@ local function open_float(buf, opts)
 end
 
 local function open_right_split(buf, opts)
+    if Module.window and vim.api.nvim_win_is_valid(Module.window) then
+        vim.api.nvim_set_current_win(Module.window)
+        return
+    end
+
     vim.cmd("botright vsplit")
     vim.cmd("vertical resize " .. opts.split_width)
 
