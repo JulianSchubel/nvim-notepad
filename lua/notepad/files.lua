@@ -22,7 +22,7 @@ function Module.resolve(name, opts)
     return path
 end
 
-local function load_file_buffer(path)
+function Module.load_file_buffer(path)
   -- Check if buffer already exists
   local buf = vim.fn.bufnr(path, false)
 
@@ -34,4 +34,4 @@ local function load_file_buffer(path)
   return buf
 end
 
-return Module, load_file_buffer
+return Module
