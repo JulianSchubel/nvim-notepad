@@ -79,6 +79,7 @@ end
 
 function Module.open(buf, path, opts)
     -- Window already exists
+    print(Module.window);
     if Module.window and vim.api.nvim_win_is_valid(Module.window) then
         -- Same file then don't do anything
         if Module.filepath == path then
