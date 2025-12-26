@@ -4,7 +4,7 @@
 
 local Module = {}
 
-function Module.resolution(name, opts)
+function Module.resolve(name, opts)
     local entry = opts.files[name] or name;
 
     local path = type(entry) == "function" and entry() or entry
