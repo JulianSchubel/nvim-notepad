@@ -15,7 +15,7 @@ end
 function Module.open(path, opts)
     --If duplicate windows is not enabled in the configuration reuse the
     --existing window
-    if ~opts.duplicate_windows then
+    if not opts.duplicate_windows then
         if Module.win and vim.api.nvim_win_is_valid(Module.win) then
             vim.api.nvim_set_current_win(Module.win)
             return
