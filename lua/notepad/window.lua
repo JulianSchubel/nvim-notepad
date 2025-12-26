@@ -12,7 +12,7 @@ local function load_file_buffer(path)
   return buf
 end
 
-function Module.open(buf, opts)
+local function open_float(buf, opts)
     --If duplicate windows is not enabled in the configuration reuse the
     --existing window
     if not opts.duplicate_windows then
@@ -46,6 +46,23 @@ function Module.open(buf, opts)
 
     vim.wo[Module.win].wrap = true
     vim.wo[Module.win].linebreak = true
+end
+
+local function open_right_split(buf, opts)
+    vim.cmd("botright vsplit")
+    vim.cmd("vertical resize " .. opts.split_width)
+    local win = vim.api.nvim_get_current_win()
+    vim.api.nvim_win_set_buf(win, buf)
+
+    return win
+end
+
+function Module.open(buf, opts)
+    if opts.layout == "right" then
+        return open_right_split(buf, opts)
+    end
+
+    return open_float(buf, opts)
 end
 
 return Module
