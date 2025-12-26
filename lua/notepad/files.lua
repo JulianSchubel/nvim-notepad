@@ -16,7 +16,7 @@ function Module.resolve(name, opts)
     end
 
     if vim.fn.filereadable(path) == 0 then
-        vim.fn.writefile({ "# Notepad", ""}, path)
+        vim.fn.writefile({ "# " .. name, ""}, path)
     end
 
     return path
