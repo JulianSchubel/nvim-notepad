@@ -63,7 +63,9 @@ local function open_float(buf, opts)
     -- Clear state if window is closed
     vim.api.nvim_create_autocmd("WinClosed", {
         once = true,
-        callback = Module.close(),
+        callback = function()
+            Module.win = nil
+        end
     })
 end
 
@@ -76,7 +78,10 @@ local function open_right_split(buf, opts)
 
     vim.api.nvim_create_autocmd("WinClosed", {
         once = true,
-        callback = Module.close(),
+        callback = function()
+            Module.win = nil
+            Module.current_displayed_buffer = nil
+        end
     })
 end
 
