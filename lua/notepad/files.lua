@@ -16,7 +16,7 @@ function Module.resolve(name, opts)
     end
 
     if vim.fn.filereadable(path) == 0 then
-        vim.fn.writefile({ "# " .. name, ""}, path)
+        vim.fn.writefile({ "# New Note  ", ""}, path)
     end
 
     return path
