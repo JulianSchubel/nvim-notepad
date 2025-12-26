@@ -59,11 +59,12 @@ end
 local function open_right_split(buf, opts)
     if Module.window ~= nil then
         return
-    else
-        vim.cmd("botright vsplit")
-        vim.cmd("vertical resize " .. opts.split_width)
     end
 
+    vim.cmd("vsplit")
+    vim.cmd("vertical resize " .. opts.split_width)
+
+    Module.window = vim.api.nvim_get_current_win()
     vim.api.nvim_win_set_buf(Module.window, buf)
 
     vim.api.nvim_create_autocmd("WinClosed", {
