@@ -10,10 +10,11 @@ function Module.setup(opts)
 end
 
 function Module.open(name)
-    local path = files.resolve(name or "inbox", config.opts)
-    local buf = files.load_file_buffer(path);
-    window.open(buf, config.opts)
+    local path = files.resolve(name or "notepad", config.opts)
+    local buf = files.load_buffer(path)
+    window.open(buf, path, config.opts)
 end
+
 
 Module.toggle = tasks.toggle
 Module.archive = function() tasks.archive(config.opts) end

@@ -12,6 +12,7 @@ local Module = {
     win = nil,
     prev_win = nil,
     current_displayed_buffer = nil,
+    path = nil,
 }
 
 local function load_file_buffer(path)
@@ -75,29 +76,33 @@ local function open_right_split(buf, opts)
         callback = function()
             Module.win = nil
             Module.buf = nil
+            Module.path = nil
         end,
     })
 end
 
-function Module.open(buf, opts)
-    -- If window exists
+function Module.open(buf, path, opts)
+    -- Window already exists
     if Module.win and vim.api.nvim_win_is_valid(Module.win) then
-        -- Same buffer then toggle (close)
-        if Module.buf == buf then
+        -- Same file then toggle
+        if Module.path == path then
             Module.close()
             return
         end
 
-        -- Different buffer then reuse window
+        -- Different file then reuse same window
         vim.api.nvim_win_set_buf(Module.win, buf)
         vim.api.nvim_set_current_win(Module.win)
+
         Module.buf = buf
+        Module.path = path
         return
     end
 
-    -- Window does not exist then create it
+    -- Create window
     Module.prev_win = vim.api.nvim_get_current_win()
     Module.buf = buf
+    Module.path = path
 
     if opts.layout == "right" then
         return open_right_split(buf, opts)
@@ -113,6 +118,7 @@ function Module.close()
 
     Module.win = nil
     Module.buf = nil
+    Module.path = nil
 
     if Module.prev_win and vim.api.nvim_win_is_valid(Module.prev_win) then
         vim.api.nvim_set_current_win(Module.prev_win)
