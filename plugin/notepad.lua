@@ -1,3 +1,5 @@
+local ui = require("telescope")
+local config = require("config")
 local notepad = require("notepad")
 vim.keymap.set("n", "<leader>nx", notepad.toggle)
 vim.keymap.set("n", "<leader>na", notepad.archive)

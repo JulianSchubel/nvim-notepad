@@ -8,11 +8,6 @@ local Module = {}
 
 function Module.setup(opts)
     config.setup(opts)
-    vim.api.nvim_create_user_command(
-        "Notepad",
-        function() ui.open(config.opts) end,
-        { desc = "Open Neovim Notepad" }
-    );
 end
 
 function Module.open(name, opts)
