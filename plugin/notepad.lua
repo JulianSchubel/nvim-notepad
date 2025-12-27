@@ -1,5 +1,10 @@
-vim.api.nvim_create_user_command("Notepad", function()
-    require("notepad.telescope").open(require("notepad.config").opts)
-end, {})
+local notepad = require("notepad")
+vim.keymap.set("n", "<leader>nx", notepad.toggle)
+vim.keymap.set("n", "<leader>na", notepad.archive)
+vim.keymap.set(
+    "n",
+    "<leader>nn",
+    "<cmd>Notepad<cr>",
+    { desc = "Open Neovim Notepad" }
+)
 
-vim.keymap.set("n", "<leader>nn", "<cmd>Notepad<cr>", { desc = "Open Notepad" })

@@ -57,15 +57,15 @@ local function open_float(buf, opts)
 end
 
 local function open_right_split(buf, opts)
-    if Module.window ~= nil then
-        return
-    end
-
-    vim.cmd("vsplit")
+    vim.cmd("botright vsplit")
     vim.cmd("vertical resize " .. opts.split_width)
 
-    Module.window = vim.api.nvim_get_current_win()
+    Module.window = vim.api.nvim_get_current_win();
     vim.api.nvim_win_set_buf(Module.window, buf)
+
+    vim.bo[buf].filetype = "markdown"
+    vim.bo[buf].bufhidden = "hide"
+    vim.bo[buf].modifiable = true
 
     vim.api.nvim_create_autocmd("WinClosed", {
         once = true,
@@ -79,15 +79,9 @@ end
 function Module.open(buf, path, opts)
     if Module.window and vim.api.nvim_win_is_valid(Module.window) then
         if Module.filepath == path then
-            -- Same file then don't do anything
-            return
-        else
-            -- Different file then reuse same window
-            Module.window = vim.api.nvim_win_set_buf(Module.window, buf)
             vim.api.nvim_set_current_win(Module.window)
+            return
         end
-
-
         -- Update the referenced filepath
         Module.filepath = path
         return
