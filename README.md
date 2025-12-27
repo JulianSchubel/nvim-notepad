@@ -12,9 +12,9 @@ This plugin is currently under development.
 return {
     "JulianSchubel/nvim-notepad",
     cmd = { "Notepad" },
-    keys = { "<leader>nn", "<cmd>Notepad<cr>", desc = "Open Neovim cheatsheet" },
+    keys = { "<leader>nn", "<cmd>Notepad<cr>", desc = "Open Neovim Notepad" },
     config = function()
-        require("cheatsheet").setup({
+        require("notepad").setup({
             layout = "right",
             width_ratio = 0.8,
             height_ratio = 0.8,
