@@ -9,7 +9,7 @@ This plugin is currently under development.
 ## Installation (Lazy.nvim)
 
 ```lua
-{
+return {
     "JulianSchubel/nvim-notepad",
     cmd = { "Notepad" },
     keys = { "<leader>nn", "<cmd>Notepad<cr>", desc = "Open Neovim cheatsheet" },
@@ -18,9 +18,9 @@ This plugin is currently under development.
             layout = "right",
             width_ratio = 0.8,
             height_ratio = 0.8,
-            split_width = 40
+            split_width = 40,
             border = "rounded",
         })
-    end,
+    end
 }
 ```
