@@ -45,7 +45,32 @@ local default = {
     exit_prompt = true,
 }
 
+--Helper function to set modal buffer options
+local function configure_modal_buffer(buf)
+    --Discard buffer when hidden
+    vim.bo[buf].bufhidden = "wipe";
+    --Disable everything except dismissal; ensures that the window feels like a modal
+    vim.bo[buf].buftype = "nofile";
+    vim.bo[buf].swapfile = false;
+    vim.bo[buf].readonly = true;
+    vim.bo[buf].modifiable = false;
+    -- Ensure Treesitter highlighting works in scratch buffers
+    if vim.treesitter and vim.treesitter.start then
+        pcall(vim.treesitter.start, buf, "markdown")
+    end
+end
+
+--Helper function to set modal window options
+local function configure_modal_window(win)
+    -- Set floating window background
+    vim.api.nvim_set_hl(namespace, "NormalFloat", { bg = "#1f2430" })
+    vim.api.nvim_set_hl(namespace, "FloatBorder", { bg = "#1f2430", fg = "#6b7089" })
+    --Do not highlight the line of text under the cursor
+    vim.wo[win].cursorline =false;
+end
+
 function Module.show(message, opts)
+    --Merge user-provided opts with defaults
     opts = vim.tbl_deep_extend("force", default, opts);
 
     --Modal window width scales with message length but is clamped between 40 and 80 columns.
@@ -71,18 +96,12 @@ function Module.show(message, opts)
         });
     end
 
-
     --Create an unlisted scratch buffer to hold the message content
     local buf = vim.api.nvim_create_buf(false, true);
     --Set the buffer content
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines);
-    --Discard buffer when hidden
-    vim.bo[buf].bufhidden = "wipe";
-    --Disable everything except dismissal; ensures that the window feels like a modal
-    vim.bo[buf].buftype = "nofile";
-    vim.bo[buf].swapfile = false;
-    vim.bo[buf].readonly = true;
-    vim.bo[buf].modifiable = false;
+    configure_modal_buffer(buf);
+
     --Severity highlighting:
     --  ∙ Built-in Neovim in highlight groups:
     --    / -------------------------------------------/
@@ -98,6 +117,7 @@ function Module.show(message, opts)
     --    | `FloatBorder` | Floating window borders    |
     --    / ------------------------------------------ /
     safe_highlight(buf, namespace, 0, 0, "ErrorMsg");
+
     --Create the window
     local win = vim.api.nvim_open_win(buf, true, {
         relative = "editor",
@@ -110,17 +130,16 @@ function Module.show(message, opts)
         title = title,
         title_pos = "center",
     });
+    configure_modal_window(win);
 
-    --Do not highlight the line of text under the cursor
-    vim.wo[win].cursorline =false;
-
-    --Close the modal
+    --Define a close modal function
     local function close()
         if vim.api.nvim_win_is_valid(win) then
             vim.api.nvim_win_close(win, true)
         end
     end
 
+    --Set keymaps
     vim.keymap.set("n", "<Esc>", close, { buffer = buf, nowait = true });
     vim.keymap.set("n", "<CR>", close, { buffer = buf, nowait = true });
     vim.keymap.set("n", "q", close, { buffer = buf, nowait = true });
