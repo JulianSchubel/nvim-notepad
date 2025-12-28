@@ -18,7 +18,16 @@ function Module.setup(opts)
     );
     vim.api.nvim_create_user_command(
         "Modal",
-        function() modal.show("Hello, world!") end,
+        function() modal.show({
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+			"Nam consequat fermentum dui, id euismod nibh aliquet at",
+			"Etiam quis est magna",
+			"Vestibulum id molestie enim, condimentum lacinia orci",
+			"Vivamus commodo lacus vitae egestas convallis",
+			"Mauris et urna dapibus, placerat odio at, pretium velit",
+			"Mauris quis risus eget eros aliquet pharetra quis iaculis quam",
+			"Maecenas lectus turpis, volutpat nec rutrum sit amet, dictum ut nisl"
+        }) end,
         { desc = "Open modal window" }
     );
     vim.keymap.set(

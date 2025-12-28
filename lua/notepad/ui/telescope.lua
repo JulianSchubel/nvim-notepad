@@ -52,7 +52,7 @@ function Module.open(opts)
     --Add the create new note option
     table.insert(entries, "Create new note...")
 
-    --Create a new Telescope picker
+    --Create a new Telecope picker
     pickers.new({}, {
         --Sets the picker title displayed at the top
         prompt_title = "Notes",
