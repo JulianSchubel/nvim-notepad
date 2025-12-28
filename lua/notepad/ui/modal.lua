@@ -71,7 +71,7 @@ end
 
 function Module.show(message, opts)
     --Merge user-provided opts with defaults
-    opts = vim.tbl_deep_extend("force", default, opts or {});
+    Module.opts = vim.tbl_deep_extend("force", default, opts or {});
 
     --Modal window width scales with message length but is clamped between 40 and 80 columns.
     local width = opts.width or math.min(80, math.max(40, #message + 6));
