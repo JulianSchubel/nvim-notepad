@@ -1,18 +1,3 @@
---[[
-Toggle is a comparison, not a state.
-
-Recall:
-    file is an identity
-    buffer is an instance
-
-Compare:
-    what is open vs what is requested
-
-Only then decide:
-    close
-    reuse
-    create
---]]
 local Module = {
     window = nil,
     filepath = nil,
@@ -45,6 +30,10 @@ local function open_float(buf, opts)
 
     vim.wo[Module.window].wrap = true
     vim.wo[Module.window].linebreak = true
+
+    vim.api.nvim_set_hl(0, "NormalFloat", { bg = "#1f2430" })
+    vim.api.nvim_set_hl(0, "FloatBorder", { bg = "#1f2430", fg = "#6b7089" })
+    vim.api.nvim_set_hl(0, "FloatTitle", { bg = "#1f2430", fg = "#6b7089" })
 
     -- Clear state if window is closed
     vim.api.nvim_create_autocmd("WinClosed", {
