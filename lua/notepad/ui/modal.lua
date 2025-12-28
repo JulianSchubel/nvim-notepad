@@ -41,8 +41,12 @@ local function normalize(msg)
     return msg
 end
 
+local default = {
+    exit_prompt = true,
+}
+
 function Module.show(message, opts)
-    opts = opts or {};
+    opts = vim.tbl_deep_extend("force", default, opts);
 
     --Modal window width scales with message length but is clamped between 40 and 80 columns.
     local width = opts.width or math.min(80, math.max(40, #message + 6));
@@ -60,10 +64,12 @@ function Module.show(message, opts)
     );
 
     --Add dismissal prompt to message content
-    vim.list_extend(lines, {
-        "",
-        "  Press <Enter>, <Esc>, or <q> to close",
-    });
+    if opts.exit_prompt then
+        vim.list_extend(lines, {
+            "",
+            "  Press <Enter>, <Esc>, or <q> to close",
+        });
+    end
 
 
     --Create an unlisted scratch buffer to hold the message content
