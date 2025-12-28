@@ -1,7 +1,7 @@
 local config = require("notepad.config")
 local files = require("notepad.files")
 local window = require("notepad.window")
-local utilities = require("notepad.utilities")
+local features = require("notepad.features")
 local telescope = require("notepad.ui.telescope")
 local modal = require("notepad.ui.modal")
 
@@ -9,8 +9,8 @@ local Module = {}
 
 function Module.setup(opts)
     config.setup(opts)
-    vim.keymap.set("n", "<leader>nx", utilities.toggle)
-    vim.keymap.set("n", "<leader>na", utilities.archive)
+    vim.keymap.set("n", "<leader>nx", features.toggle)
+    vim.keymap.set("n", "<leader>na", features.archive)
     vim.api.nvim_create_user_command(
         "Notepad",
         function() telescope.open(config.opts) end,
@@ -63,7 +63,7 @@ function Module.create(name, opts)
     files.load_notes(opts)
 end
 
-Module.toggle = utilities.toggle
-Module.archive = function() utilities.archive(config.opts) end
+Module.toggle = features.toggle
+Module.archive = function() features.archive(config.opts) end
 
 return Module
