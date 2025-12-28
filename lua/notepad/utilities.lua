@@ -7,9 +7,9 @@ function Module.toggle()
     local line = vim.api.nvim_get_current_line()
 
     --Check for an unchecked task indicator;
-    if line:match("%- %[ %]") then
+    if line:match("%- %[%]") then
         --Replace the unchecked occurence with a checked task indicator
-        line = line:gsub("%- %[ %]", "- [x]", 1)
+        line = line:gsub("%- %[x%]", "- [x]", 1)
     elseif line:match("%- %[x%]") then
         --Replace the checked occurence with an unchecked indicator
         line = line:gsub("%- %[x%]", "- [ ]", 1)
