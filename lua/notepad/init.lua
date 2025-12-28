@@ -3,7 +3,7 @@ local files = require("notepad.files")
 local window = require("notepad.window")
 local utilities = require("notepad.utilities")
 local telescope = require("notepad.ui.telescope")
-local modal = require("lua.notepad.ui.modal")
+local modal = require("notepad.ui.modal")
 
 local Module = {}
 

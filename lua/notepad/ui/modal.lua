@@ -1,3 +1,4 @@
+--Provides a Modal window feature
 local Module = {}
 
 --Create a namespace for buffer highlighting
