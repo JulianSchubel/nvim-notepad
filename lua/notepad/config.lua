@@ -1,5 +1,4 @@
 local files = require("notepad.files")
-local telescope = require("notepad.telescope")
 
 local Module = {}
 
@@ -44,12 +43,6 @@ function Module.setup(opts)
 
     --Load files from disk into opts.files 
     files.load_notes(Module.opts)
-    vim.api.nvim_create_user_command(
-        "Notepad",
-        function() telescope.open(Module.opts) end,
-        { desc = "Open Neovim Notepad" }
-    );
-
 end
 
 return Module

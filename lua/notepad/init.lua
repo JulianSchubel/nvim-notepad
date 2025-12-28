@@ -2,12 +2,31 @@ local config = require("notepad.config")
 local files = require("notepad.files")
 local window = require("notepad.window")
 local utilities = require("notepad.utilities")
-local ui = require("notepad.telescope")
+local telescope = require("notepad.ui.telescope")
+local modal = require("lua.notepad.ui.modal")
 
 local Module = {}
 
 function Module.setup(opts)
     config.setup(opts)
+    vim.keymap.set("n", "<leader>nx", utilities.toggle)
+    vim.keymap.set("n", "<leader>na", utilities.archive)
+    vim.api.nvim_create_user_command(
+        "Notepad",
+        function() telescope.open(config.opts) end,
+        { desc = "Open Neovim Notepad" }
+    );
+    vim.api.nvim_create_user_command(
+        "Modal",
+        function() modal.show("Hello, world!") end,
+        { desc = "Open modal window" }
+    );
+    vim.keymap.set(
+        "n",
+        "<leader>nn",
+        "<cmd>Notepad<cr>",
+        { desc = "Open Neovim Notepad" }
+    )
 end
 
 function Module.open(name, opts)
