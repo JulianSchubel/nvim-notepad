@@ -6,6 +6,8 @@ Nvim-notepad opens Markdown files in a floating or split window, allowing you to
 
 This plugin is currently under development.
 
+![](assets/nvim-notepad.png)
+
 ## Installation (Lazy.nvim)
 
 ```lua
