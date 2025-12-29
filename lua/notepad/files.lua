@@ -1,3 +1,4 @@
+local modal = require("lua.notepad.ui.modal")
 -- Provides file utility functions and helpers
 local Module = {}
 
@@ -10,6 +11,15 @@ function Module.resolve(name, opts)
     -- otherwise use it directly:
     --  ∙ Allows paths to depend on data/time, current project, cwd, etc.
     local path = type(entry) == "function" and entry() or entry
+
+    -- filename-modifiers for .fnamemodify(). See :help filename-modifiers.
+    --`:~` Expands the path relative to the user's home directory (e.g., /home/user/file.txt becomes ~/file.txt).
+    --`.` Makes the path relative to the current working directory. The leading . is replaced with the path name of the edited file's directory.
+    --`:p` Expands to the full path name.
+    --`:h` Returns the head of the name (the path leading to the file, without the file name itself).
+    --`:t` Returns the tail of the name (the file name and extension only, without the path).
+    --`:r` Returns the root of the name (the file name without the extension).
+    --`:e` Returns the extension of the nam
     -- Extract the absolute path to the parent directory (head) of the file path
     local dir = vim.fn.fnamemodify(path, ":h");
 
@@ -22,8 +32,8 @@ function Module.resolve(name, opts)
 
     -- Check if the file exists, if not, create the file
     -- ∙ Auto-create files so users never see "file not found" errors
-    if vim.fn.filereadable(path) then
-        vim.fn.writefile({ "# New Note  ", "" }, path)
+    if vim.fn.filereadable(path) == 0 then
+        vim.fn.writefile({ "# " .. name, "" }, path)
     end
 
     -- Returns a file path that is guaranteed to be valid
@@ -33,7 +43,8 @@ end
 --  Ensure a file is loaded into Neovim's buffer list and return its buffer
 --  number
 function Module.load_file_buffer(path)
-    -- Check if a buffer baced by the path already exists
+    vim.notify("load_file_buffer: " .. path, vim.log.levels.WARN);
+    -- Check if a buffer backed by the path already exists
     local buf = vim.fn.bufnr(path, false)
 
     -- If the buffer is not in the buffer list
@@ -67,6 +78,7 @@ function Module.load_notes(opts)
             end
         end
     end
+    --vim.notify(opts.files, vim.log.levels.WARN);
 end
 
 --Check if the argument provided is valid notename. That is, a non-empty string that consists only of alphanumeric

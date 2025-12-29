@@ -4,7 +4,6 @@ local function toggle()
     --Read the full text of the line under the cursor
     local line = vim.api.nvim_get_current_line()
 
-    vim.notify(line, vim.log.levels.WARN)
     --Check for an unchecked task indicator;
     if line:match("%- %`%[%s?%]%`") then
         --Replace the unchecked occurence with a checked task indicator

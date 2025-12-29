@@ -2,11 +2,16 @@ local utilities = require("notepad.utilities")
 
 --Provides a Modal window feature
 local Module = {
-    opts = {}
+    opts = {},
+    --Store references to some key information; mainly required for resizing
+    state = {
+        lines = nil,
+
+    }
 }
 
 --Create a namespace for buffer highlighting
-local namespace = vim.api.nvim_create_namespace("Nvim-notepad.modal")
+local namespace = vim.api.nvim_create_namespace("Nvim-notepad.modal");
 
 --Normalizes a multiline string into a table of lines
 local function normalize(msg)
@@ -16,13 +21,71 @@ local function normalize(msg)
     return msg
 end
 
-local default = {
-    exit_prompt = true,
-    transparency = 25,
-    max_width = 80,
-    max_height = 20,
-    title = "Message",
-}
+
+local function set_keymaps(buf)
+    --Set keymaps
+    local close = function () Module.close(buf) end;
+    vim.keymap.set("n", "<Esc>", close, { buffer = buf, nowait = true });
+    vim.keymap.set("n", "<CR>", close, { buffer = buf, nowait = true });
+    vim.keymap.set("n", "q", close, { buffer = buf, nowait = true });
+end
+
+--Compute the window layout configuration
+local function compute_layout(buf, padding)
+    local columns = vim.o.columns;
+    local rows    = vim.o.lines;
+    local lines   = Module.state[buf].lines;
+    utilities.display.highlight_line(buf, namespace, 0, 0, "ErrorMsg");
+
+    local V_PADDING = 6;
+    local H_PADDING = 6;
+    --Compute clamped viewport scaling with Neovim display width. Width is
+    --clamped to a minimum of 40 columns and the width of the Neovim display
+    --width less horizontal padding.
+    local width = math.max(40, math.min(80 - H_PADDING, math.floor(columns * 0.7)))
+    --clamped to a minimum of 5 rows and the height of the Neovim display height
+    --less vertical padding
+    local height = math.max(5, math.min(rows - V_PADDING, #lines + 4));
+
+    -- Center the window
+    local row = math.floor((rows - height) / 2)
+    local col = math.floor((columns - width) / 2)
+
+    return {
+        relative = "editor",
+        style = "minimal",
+        border = "rounded",
+        width = width,
+        height = height,
+        row = row,
+        col = col,
+        title = Module.opts.title,
+        title_pos = "center",
+    }
+end
+
+function Module.attach_resize_handler(win)
+    return vim.api.nvim_create_autocmd("VimResized", {
+        callback = function()
+            --Reduce multiple calls to one call once events stop triggering.
+            utilities.debounce(function()
+                --Defer until Neovim has finalized grid sizes so we don't get stale values
+                --Runs after the current redraw/layout cycle; resize after Neovim is done resizing.
+                vim.schedule(function()
+                    local window = win
+                    --Check if the window is valid; if note early return.
+                    if not vim.api.nvim_win_is_valid(window) then
+                        return
+                    end
+                    --Recompute the layout post resizing
+                    local cfg = compute_layout()
+                    --Reset the modal window's properties
+                    vim.api.nvim_win_set_config(window, cfg)
+                end)
+            end);
+        end,
+    });
+end
 
 --Helper function to set modal buffer options
 local function configure_modal_buffer(buf)
@@ -51,6 +114,15 @@ local function configure_modal_window(win)
     vim.wo[win].winblend = Module.opts.transparency or 0;
 end
 
+--Set default options
+local default = {
+    exit_prompt = true,
+    transparency = 25,
+    max_width = 80,
+    max_height = 20,
+    title = "Message",
+}
+
 function Module.show(message, opts)
     --Merge user-provided opts with defaults
     Module.opts = vim.tbl_deep_extend("force", default, opts or {});
@@ -78,15 +150,15 @@ function Module.show(message, opts)
         });
     end
 
-    --Modal window width scales with message length but is clamped between 40 and 80 columns.
-    local width = utilities.display.compute_display_width(lines, 40, 80);
-    local height = utilities.misc.clamp(#lines, 5, 20);
-
-
     --Create an unlisted scratch buffer to hold the message content
     local buf = vim.api.nvim_create_buf(false, true);
+    --Initialize a buffer namespaced state table
+    Module.state[buf] = {}
+    --Set the content lines state
+    Module.state[buf].lines = lines
     --Set the buffer content
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines);
+    --Configure the modals buffer
     configure_modal_buffer(buf);
 
     --Severity highlighting:
@@ -106,71 +178,38 @@ function Module.show(message, opts)
     utilities.display.highlight_line(buf, namespace, 0, 0, "ErrorMsg");
 
     --Create the window
-    local win = vim.api.nvim_open_win(buf, true, {
-        relative = "editor",
-        width = width,
-        height = height,
-        row = math.floor((vim.o.lines - height) / 2),
-        col = math.floor((vim.o.columns - width) / 2),
-        style = "minimal",
-        border = "rounded",
-        title = title,
-        title_pos = "center",
-    });
-    configure_modal_window(win);
+    --Modal window scales with message length but is clamped between 40 and 80 columns.
+    local window_id = vim.api.nvim_open_win(buf, true, compute_layout(buf))
+    --Set the window_id state
+    Module.state[buf].window_id = window_id
+    --Configure the modals window
+    configure_modal_window(window_id);
+    --Attach a resize handler and record the associated id as state
+    Module.state[buf].resize_autocmd_id = Module.attach_resize_handler(window_id);
+    --Set keymaps for the buffer (close method)
+    set_keymaps(buf);
+    return window_id, buf;
+end
 
-    local needs_scroll = #lines > height;
-    if needs_scroll then
-        vim.wo[win].scrolloff = 0
-        vim.wo[win].wrap = false
-        vim.wo[win].linebreak = false
-        vim.keymap.set("n", "<C-j>", function()
-            vim.cmd("normal! <C-e>")
-        end, { buffer = buf })
-
-        vim.keymap.set("n", "<C-k>", function()
-            vim.cmd("normal! <C-y>")
-        end, { buffer = buf })
-        if needs_scroll then
-            utilities.display.highlight_line(buf, namespace, height - 1, 0, "Comment")
-        end
+--Define a close modal function
+function Module.close(buf)
+    --We have to access namespaced values as module level values can change
+    --across invocations
+    local win = Module.state[buf].window_id;
+    local resize_autocmd = Module.state[buf].resize_autocmd_id;
+    if vim.api.nvim_win_is_valid(win) then
+        vim.api.nvim_win_close(win, true)
+    end
+    if win and vim.api.nvim_win_is_valid(win) then
+        vim.api.nvim_win_close(win, true)
     end
 
-    --Define a close modal function
-    local function close()
-        if vim.api.nvim_win_is_valid(win) then
-            vim.api.nvim_win_close(win, true)
-        end
+    if resize_autocmd then
+        vim.api.nvim_del_autocmd(resize_autocmd)
+        Module.state[buf].resize_autocmd_id = nil
+        Module.state[buf].window_id = nil
+        Module.state[buf] = nil
     end
-
-    --Set keymaps
-    vim.keymap.set("n", "<Esc>", close, { buffer = buf, nowait = true });
-    vim.keymap.set("n", "<CR>", close, { buffer = buf, nowait = true });
-    vim.keymap.set("n", "q", close, { buffer = buf, nowait = true });
-
-    --Recompute width and height on resize
-    vim.api.nvim_create_autocmd("VimResized", {
-        callback = function()
-            if not vim.api.nvim_win_is_valid(win) then return end
-
-            width = utilities.viewport_adaptive_width(lines, {
-                min = 40,
-                max = vim.o.columns - 6,
-                padding = PADDING,
-            })
-            height = utilities.viewport_adaptive_height(lines, {
-                min = 5,
-                max = vim.o.lines - 4,
-                padding = PADDING,
-            })
-
-            needs_scroll = #lines > height
-
-            vim.api.nvim_win_set_config(win, { height = height, width = width })
-        end,
-    })
-
-    return win, buf;
 end
 
 return Module

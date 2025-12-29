@@ -38,8 +38,9 @@ function Module.setup(opts)
     )
 end
 
-function Module.open(name, opts)
-    local path = files.resolve(name, opts)
+function Module.open(name)
+    files.load_notes(config.opts)
+    local path = files.resolve(name, config.opts)
     local buf = files.load_file_buffer(path)
     window.open(buf, path, config.opts)
 end

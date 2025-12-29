@@ -1,8 +1,10 @@
+local config = require("notepad.config")
 -- Move completed tasks (- [x]) out of the curernt buffer and appends them to an
 -- archive file
 local function archive(opts)
+    vim.notify("Archive", vim.log.levels.WARN)
     --Archiving feature flag; enable archiving to be configured
-    if not opts.archive.enabled then return end
+    if not config.opts.archive.enabled then return end
 
     --Get the active buffer handle
     local buf = vim.api.nvim_get_current_buf()
