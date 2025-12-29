@@ -47,7 +47,7 @@ local function compute_layout(buf, padding)
     --less vertical padding
     local height = math.max(5, math.min(rows - V_PADDING, #lines + 4));
 
-    -- Center the window
+    -- Centre the window
     local row = math.floor((rows - height) / 2)
     local col = math.floor((columns - width) / 2)
 
@@ -127,7 +127,6 @@ function Module.show(message, opts)
     --Merge user-provided opts with defaults
     Module.opts = vim.tbl_deep_extend("force", default, opts or {});
 
-    local title = Module.opts.title or "Message";
     local PADDING = 4
 
     --The number of padding spaces added to each line (2 before, 2 after)
