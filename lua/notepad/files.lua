@@ -1,4 +1,4 @@
-local modal = require("lua.notepad.ui.modal")
+local modal = require("notepad.ui.modal");
 -- Provides file utility functions and helpers
 local Module = {}
 
@@ -30,10 +30,9 @@ function Module.resolve(name, opts)
         vim.fn.mkdir(dir, "p");
     end
 
-    -- Check if the file exists, if not, create the file
-    -- ∙ Auto-create files so users never see "file not found" errors
+    -- Check if the file exists, if not, notify user
     if vim.fn.filereadable(path) == 0 then
-        vim.fn.writefile({ "# " .. name, "" }, path)
+        vim.fn.writefile({ "# " .. name, "" }, opts.notepad_dir .. name);
     end
 
     -- Returns a file path that is guaranteed to be valid
@@ -76,9 +75,13 @@ function Module.load_notes(opts)
                     return opts.notepad_dir .. "/" .. entry
                 end
             end
+            --If there is no valid name but one exists in the files table remove
+            --it;
+            if not name and opts.files[name] then
+                opts.files[name] = nil
+            end
         end
     end
-    --vim.notify(opts.files, vim.log.levels.WARN);
 end
 
 --Check if the argument provided is valid notename. That is, a non-empty string that consists only of alphanumeric
@@ -113,6 +116,19 @@ function Module.write_file(path, data)
     --Write data into the file
     f:write(data)
     f:close()
+end
+
+function Module.delete_file(path)
+    if vim.fn.filereadable(path) ~= 1 then
+        return false, "File does not exist"
+    end
+
+    local ok, err = os.remove(path)
+    if not ok then
+        return false, err
+    end
+
+    return true, nil
 end
 
 return Module

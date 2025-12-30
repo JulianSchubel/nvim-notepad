@@ -1,4 +1,3 @@
-local window = require("notepad.window")
 --Toggles a checkbox on the current cursor line between checked / unchecked
 local function toggle()
     --Read the full text of the line under the cursor

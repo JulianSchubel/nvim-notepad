@@ -3,33 +3,24 @@ local files = require("notepad.files")
 local window = require("notepad.window")
 local features = require("notepad.features")
 local telescope = require("notepad.ui.telescope")
-local modal = require("notepad.ui.modal")
 
 local Module = {}
 
 function Module.setup(opts)
     config.setup(opts)
+    --Toggle item as complete / incomplete
     vim.keymap.set("n", "<leader>nx", features.toggle)
-    vim.keymap.set("n", "<leader>na", features.archive)
+    --Remove completed items
+    vim.keymap.set("n", "<leader>nr", features.remove_completed)
+    --Insert an incomplete item
+    vim.keymap.set("n", "<leader>ni", "i- `[]` ")
+    --Set entry point command
     vim.api.nvim_create_user_command(
         "Notepad",
         function() telescope.open(config.opts) end,
         { desc = "Open Neovim Notepad" }
     );
-    vim.api.nvim_create_user_command(
-        "Modal",
-        function() modal.show({
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-			"Nam consequat fermentum dui, id euismod nibh aliquet at",
-			"Etiam quis est magna",
-			"Vestibulum id molestie enim, condimentum lacinia orci",
-			"Vivamus commodo lacus vitae egestas convallis",
-			"Mauris et urna dapibus, placerat odio at, pretium velit",
-			"Mauris quis risus eget eros aliquet pharetra quis iaculis quam",
-			"Maecenas lectus turpis, volutpat nec rutrum sit amet, dictum ut nisl"
-        }) end,
-        { desc = "Open modal window" }
-    );
+    --Bind entry point to keymap
     vim.keymap.set(
         "n",
         "<leader>nn",
@@ -64,7 +55,21 @@ function Module.create(name, opts)
     files.load_notes(opts)
 end
 
+function Module.delete(name, opts)
+    if not files.is_valid_notename(name) then
+        return nil, "Invalid note"
+    end
+    local path = files.resolve(name, config.opts);
+    local ok, err = files.delete_file(path);
+    if ok then
+        vim.notify("loading notes");
+    end
+    opts.files[name] = nil;
+    files.load_notes(opts);
+    return ok, err;
+end
+
 Module.toggle = features.toggle
-Module.archive = function() features.archive(config.opts) end
+Module.remove_completed = features.remove_completed
 
 return Module

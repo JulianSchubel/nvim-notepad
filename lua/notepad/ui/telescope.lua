@@ -1,3 +1,4 @@
+local modal = require("notepad.ui.modal")
 --Creates a picker instance
 local pickers = require("telescope.pickers")
 --Supplies data to display
@@ -9,8 +10,33 @@ local state = require("telescope.actions.state")
 --User configured defaults(sorters, layouts)
 local conf = require("telescope.config").values
 
+
 --Provides the telescope UI layer
 local Module = {}
+
+local function confirm_delete(note, on_done)
+    local _, modal_buf = modal.show({
+        "Delete note?",
+        "",
+        note,
+    }, {
+        title = "Confirm deletion",
+        exit_prompt = false,
+    })
+
+    local buf = vim.api.nvim_get_current_buf()
+    --Set keymaps for the current buffer only
+    vim.keymap.set("n", "y", function()
+        modal.close(modal_buf)
+        local ok, err = require("notepad").delete(note, require("notepad.config").opts)
+        if not ok then
+            modal.show(err, { title = "Error" })
+        end
+        if on_done then on_done(ok) end
+    end, { buffer = buf })
+    vim.keymap.set("n", "n", function() modal.close(modal_buf) end, { buffer = buf })
+    vim.keymap.set("n", "<Esc>", function() modal.close(modal_buf) end, { buffer = buf })
+end
 
 --Prompt the user to input the new notes name
 local function prompt_new_note(opts, previous, retry_count)
@@ -53,8 +79,10 @@ function Module.open(opts)
     table.insert(entries, "Create new note...")
 
     --Create a new Telecope picker
-    pickers.new({}, {
-        --Sets the picker title displayed at the top
+    local prompt_bufnr = pickers.new({}, {
+        --Sets the picker title
+        title = "Notes",
+        --Sets the picker prompt title 
         prompt_title = "Notes",
         --Provides a static list of key strings (each value is derived from the
         --configured logical note names)
@@ -73,6 +101,7 @@ function Module.open(opts)
                 actions.close(bufnr)
                 if entry == "Create new note..." then
                     if prompt_new_note(opts, "", 0) == -1 then
+                        --If an esc key or no name provided reopen the picker
                         Module.open(opts)
                     else
                         --Delegate opening to core logic passing the logical name as
@@ -85,6 +114,17 @@ function Module.open(opts)
                     require("notepad").open(entry, opts)
                 end
             end)
+            map("n", "d", function(bufnr)
+                local entry = state.get_selected_entry()
+                if not entry then return end
+
+                confirm_delete(entry.value, function(deleted)
+                    if(deleted) then
+                        require("notepad.ui.telescope").open(require("notepad.config").opts)
+                    end;
+                end)
+            end)
+ 
             --Signal to Telescope that mappings were successfully attached
             --Required for custom mappings to remain active
             return true

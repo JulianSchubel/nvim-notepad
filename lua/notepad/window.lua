@@ -92,8 +92,6 @@ function Module.close()
     if Module.window and vim.api.nvim_win_is_valid(Module.window) then
         vim.api.nvim_win_close(Module.window, true)
     end
---    Module.window = nil
---    Module.filepath = nil
 end
 
 return Module

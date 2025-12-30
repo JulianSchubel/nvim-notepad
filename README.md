@@ -2,11 +2,37 @@
 
 A lightweight, file-backed notepad for Neovim.
 
-Nvim-notepad opens Markdown files in a floating or split window, allowing you to read and write notes safely while keeping your editing context intact. It supports single or multiple notepad files, daily notes, Telescope picking, and Lazy.nvim out of the box.
-
-This plugin is currently under development.
+Nvim-notepad opens Markdown files in a floating or split window, allowing you to
+read and write notes safely while keeping your editing context intact. It
+supports single or multiple notepad files, daily notes, Telescope picking, and
+Lazy.nvim out of the box.
 
 ![](assets/nvim-notepad.png)
+
+## Features  
+
+- Persistent notes stored on disk
+- Picker-based note selection
+- Native Neovim highlight groups (no custom colors required)
+- No background services or external dependencies
+- Supporting commands to add new note items and remove completed note items.
+
+## Keymaps
+
+- `<leader>nn`: Open the note picker.
+- `<leader>ni`: Add a new note item.
+- `<leader>nx`: Toggle a note item as complete / incomplete.
+- `<leader>nr`: Remove completed note items.
+
+### Delete a note
+
+In the note picker:
+
+- Press `d` to delete the selected note
+- Confirm with `y`
+- Cancel with `n` or `<Esc>`
+
+Deleted notes are removed from disk immediately.
 
 ## Installation (Lazy.nvim)
 

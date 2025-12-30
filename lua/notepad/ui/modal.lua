@@ -1,12 +1,12 @@
 local utilities = require("notepad.utilities")
 
+local keymap_functions = c
 --Provides a Modal window feature
 local Module = {
     opts = {},
     --Store references to some key information; mainly required for resizing
     state = {
         lines = nil,
-
     }
 }
 
@@ -45,7 +45,7 @@ local function compute_layout(buf, padding)
     local width = math.max(40, math.min(80 - H_PADDING, math.floor(columns * 0.7)))
     --clamped to a minimum of 5 rows and the height of the Neovim display height
     --less vertical padding
-    local height = math.max(5, math.min(rows - V_PADDING, #lines + 4));
+    local height = math.max(5, math.min(rows - V_PADDING, #lines));
 
     -- Centre the window
     local row = math.floor((rows - height) / 2)

@@ -1,6 +1,6 @@
 local Module = {
     toggle = require("notepad.features.toggle"),
-    archive = require("notepad.features.archive"),
+    remove_completed = require("notepad.features.remove_completed"),
 }
 
 return Module
