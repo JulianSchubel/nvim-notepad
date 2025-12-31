@@ -3,6 +3,7 @@ local files = require("notepad.files")
 local window = require("notepad.window")
 local features = require("notepad.features")
 local telescope = require("notepad.ui.telescope")
+local modal = require("notepad.ui.modal")
 
 local Module = {}
 
@@ -35,7 +36,7 @@ function Module.open(name)
     window.open(buf, path, config.opts)
 end
 
-function Module.create(name, opts)
+function Module.create(name)
     if not files.is_valid_notename(name) then
         vim.notify(
             "Invalid note name. Use letters, numbers, hyphens, and underscores only.",
@@ -43,16 +44,15 @@ function Module.create(name, opts)
         )
         return
     end
-    if opts.files[name] then
+    if config.opts.files[name] then
         vim.notify("Note already exists: " .. name, vim.log.levels.WARN)
         return
     end
 
-    files.resolve(name, config.opts);
-    opts.files[name] = function()
-        return opts.notepad_dir .. "/" .. name .. ".md"
+    config.opts.files[name] = function()
+        return config.opts.notepad_dir .. "/" .. name .. ".md"
     end
-    files.load_notes(opts)
+    Module.open(name)
 end
 
 function Module.delete(name, opts)
@@ -64,8 +64,8 @@ function Module.delete(name, opts)
     if ok then
         vim.notify("loading notes");
     end
-    opts.files[name] = nil;
-    files.load_notes(opts);
+    config.opts.files[name] = nil;
+    files.load_notes(config.opts);
     return ok, err;
 end
 

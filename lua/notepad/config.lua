@@ -10,15 +10,15 @@ local defaults = {
     height_ratio = 0.7,
     split_width = 40,
     border = "rounded",
-    files = {
-        notepad = vim.fn.stdpath("data") .. NOTEPAD_DIR .. "/notepad.md",
-        today = function()
-            return vim.fn.stdpath("data")
-                .. "/notepad/"
-                .. os.date("%Y-%m-%d")
-                .. ".md"
-        end,
-    },
+--    files = {
+--        notepad = vim.fn.stdpath("data") .. NOTEPAD_DIR .. "/notepad.md",
+--        today = function()
+--            return vim.fn.stdpath("data")
+--                .. "/notepad/"
+--                .. os.date("%Y-%m-%d")
+--                .. ".md"
+--        end,
+--    },
 }
 
 function Module.setup(opts)

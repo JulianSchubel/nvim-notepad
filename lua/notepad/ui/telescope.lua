@@ -11,8 +11,17 @@ local state = require("telescope.actions.state")
 local conf = require("telescope.config").values
 
 
+
 --Provides the telescope UI layer
 local Module = {}
+
+local function daily_note()
+    local date = os.date("%Y-%m-%d");
+    if not require("notepad.config").opts.files[date] then
+        require("notepad").create(date);
+    end
+    require("notepad").open(date);
+end
 
 local function confirm_delete(note, on_done)
     local _, modal_buf = modal.show({
@@ -54,7 +63,7 @@ local function prompt_new_note(opts, previous, retry_count)
 
             if require("notepad.files").is_valid_notename(name) then
                 --Create the note
-                require("notepad").create(name, opts)
+                require("notepad").create(name)
                 return
             else
                 --Notify the user that the name provided was invalid
@@ -75,15 +84,11 @@ end
 function Module.open(opts)
     --Extract the configured logical note names
     local entries = vim.tbl_keys(opts.files)
-    --Add the create new note option
-    table.insert(entries, "Create new note...")
 
     --Create a new Telecope picker
     local prompt_bufnr = pickers.new({}, {
-        --Sets the picker title
-        title = "Notes",
         --Sets the picker prompt title 
-        prompt_title = "Notes",
+        prompt_title = "Search Notes",
         --Provides a static list of key strings (each value is derived from the
         --configured logical note names)
         finder = finders.new_table(entries),
@@ -91,40 +96,41 @@ function Module.open(opts)
         sorter = conf.generic_sorter({}),
         --Define the custom key behaviour for the picker
         attach_mappings = function(_, map)
+            --Select a note
             --Override <Enter> in insert mode
             map("i", "<CR>", function(bufnr)
                 --Read the currently seleced item from the picker
                 --(.value mathces the original entry from entries)
                 local entry = state.get_selected_entry().value
                 --Close the Telescope picker
-
                 actions.close(bufnr)
-                if entry == "Create new note..." then
-                    if prompt_new_note(opts, "", 0) == -1 then
-                        --If an esc key or no name provided reopen the picker
-                        Module.open(opts)
-                    else
-                        --Delegate opening to core logic passing the logical name as
-                        --argument
-                        require("notepad").open(entry, opts)
-                    end
-                else
-                    --Delegate opening to core logic passing the logical name as
-                    --argument
-                    require("notepad").open(entry, opts)
+
+                --Delegate opening to core logic passing the logical name as
+                --argument
+                require("notepad").open(entry, opts)
+            end)
+            --Create a note
+            map("n", "c", function(bufnr)
+                actions.close(bufnr)
+                if prompt_new_note(opts, "", 0) == -1 then
+                    --If an esc key or no name provided reopen the picker
+                    Module.open(opts)
                 end
             end)
+            --Delete a note
             map("n", "d", function(bufnr)
                 local entry = state.get_selected_entry()
                 if not entry then return end
-
                 confirm_delete(entry.value, function(deleted)
                     if(deleted) then
-                        require("notepad.ui.telescope").open(require("notepad.config").opts)
+                        Module.open(require("notepad.config").opts)
                     end;
                 end)
             end)
- 
+            map("n", "t", function(bufnr)
+                actions.close(bufnr)
+                daily_note()
+            end)
             --Signal to Telescope that mappings were successfully attached
             --Required for custom mappings to remain active
             return true

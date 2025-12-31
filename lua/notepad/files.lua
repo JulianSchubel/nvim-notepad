@@ -30,9 +30,9 @@ function Module.resolve(name, opts)
         vim.fn.mkdir(dir, "p");
     end
 
-    -- Check if the file exists, if not, notify user
+    -- Check if the file exists, if not, create it.
     if vim.fn.filereadable(path) == 0 then
-        vim.fn.writefile({ "# " .. name, "" }, opts.notepad_dir .. name);
+        vim.fn.writefile({ "# " .. name, "" }, path);
     end
 
     -- Returns a file path that is guaranteed to be valid
@@ -42,7 +42,6 @@ end
 --  Ensure a file is loaded into Neovim's buffer list and return its buffer
 --  number
 function Module.load_file_buffer(path)
-    vim.notify("load_file_buffer: " .. path, vim.log.levels.WARN);
     -- Check if a buffer backed by the path already exists
     local buf = vim.fn.bufnr(path, false)
 
@@ -66,7 +65,7 @@ function Module.load_notes(opts)
         --Check if the type is a file
         if type_ == "file" then
             --Extract the logical name, enforcing naming rules
-            local name = entry:match("^([A-Za-z0-9]+)%.md$")
+            local name = entry:match("^([A-Za-z0-9-]+)%.md$")
             --If the name is valid and not in the files table (user-defined
             --configuration entries) then construct the
             --file path and add it to the files table
