@@ -25,7 +25,7 @@ end
 
 local function confirm_delete(note, on_done)
     local _, modal_buf = modal.show({
-        "Delete note?",
+        "Delete note [y/n]?",
         "",
         note,
     }, {
