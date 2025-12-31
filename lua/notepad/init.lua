@@ -48,7 +48,7 @@ function Module.create(name, opts)
         return
     end
 
-    files.resolve(name);
+    files.resolve(name, config.opts);
     opts.files[name] = function()
         return opts.notepad_dir .. "/" .. name .. ".md"
     end
