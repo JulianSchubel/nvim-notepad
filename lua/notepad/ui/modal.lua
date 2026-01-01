@@ -208,6 +208,7 @@ local function configure_input_window(modal_id)
     local window = Module.state[modal_id].input_window
     local ns_id = Module.state[modal_id].hl_ns
     --Define modal highlights
+    vim.api.nvim_set_hl(ns_id, "Normal", { bg = "#1f2430" })
     vim.api.nvim_set_hl(ns_id, "NormalFloat", { bg = "#1f2430" })
     vim.api.nvim_set_hl(ns_id, "FloatBorder", { bg = "#1f2430", fg = "#6b7089" })
     vim.api.nvim_set_hl(ns_id, "FloatTitle", { bg = "#1f2430", fg = "#6b7089" })
