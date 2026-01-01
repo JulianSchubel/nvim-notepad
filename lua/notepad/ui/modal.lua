@@ -161,7 +161,7 @@ local function configure_content_buffer(modal_id)
     --    | `NormalFloat` | Floating window background |
     --    | `FloatBorder` | Floating window borders    |
     --    / ------------------------------------------ /
---    utilities.display.highlight_line(buffer, namespace, 0, 0, "ErrorMsg");
+    -- utilities.display.highlight_line(buffer, namespace, 0, 0, "ErrorMsg");
 
     --Discard buffer when hidden
     vim.bo[buffer].bufhidden = "wipe";
@@ -181,10 +181,13 @@ end
 --Helper function to set content window options
 local function configure_content_window(modal_id)
     local window = Module.state[modal_id].content_window
-    -- Set modal colours
-    vim.api.nvim_set_hl(0, "NormalFloat", { bg = "#1f2430" })
-    vim.api.nvim_set_hl(0, "FloatBorder", { bg = "#1f2430", fg = "#6b7089" })
-    vim.api.nvim_set_hl(0, "FloatTitle", { bg = "#1f2430", fg = "#6b7089" })
+    local ns_id = Module.state[modal_id].hl_ns
+    --Define modal highlights
+    vim.api.nvim_set_hl(ns_id, "NormalFloat", { bg = "#1f2430" })
+    vim.api.nvim_set_hl(ns_id, "FloatBorder", { bg = "#1f2430", fg = "#6b7089" })
+    vim.api.nvim_set_hl(ns_id, "FloatTitle", { bg = "#1f2430", fg = "#6b7089" })
+    --Apply modal highlights
+    vim.api.nvim_win_set_hl_ns(window, ns_id)
     --Do not highlight the line of text under the cursor
     vim.wo[window].cursorline =false;
     -- Set window transparency
@@ -201,7 +204,19 @@ local function configure_input_buffer(modal_id)
     vim.fn.prompt_setprompt(buffer, "> ")
 end
 --Helper function to set input window options
-local function configure_input_window(buf)
+local function configure_input_window(modal_id)
+    local window = Module.state[modal_id].input_window
+    local ns_id = Module.state[modal_id].hl_ns
+    --Define modal highlights
+    vim.api.nvim_set_hl(ns_id, "NormalFloat", { bg = "#1f2430" })
+    vim.api.nvim_set_hl(ns_id, "FloatBorder", { bg = "#1f2430", fg = "#6b7089" })
+    vim.api.nvim_set_hl(ns_id, "FloatTitle", { bg = "#1f2430", fg = "#6b7089" })
+    --Apply modal highlights
+    vim.api.nvim_win_set_hl_ns(window, ns_id)
+    --Do not highlight the line of text under the cursor
+    vim.wo[window].cursorline =false;
+    -- Set window transparency
+    vim.wo[window].winblend = Module.opts.transparency or 0;
 end
 
 --Set default options
@@ -246,12 +261,12 @@ function Module.show(message, opts)
     --Create the content buffer: an unlisted scratch buffer to hold the message content
     math.randomseed(os.time());
     local modal_id = math.random(9999);
-    Module.state[modal_id] = {};
-    Module.state[modal_id].on_submit = Module.opts.input.on_submit;
-    Module.state[modal_id].has_input = Module.opts.input.enabled;
-    if Module.state[modal_id].has_input then
-        vim.notify("Has input.", vim.log.levels.WARN);
-    end
+    Module.state[modal_id] = {
+        hl_ns = vim.api.nvim_create_namespace("notepad.modal." .. modal_id),
+        on_submit = Module.opts.input.on_submit,
+        has_input =  Module.opts.input.enabled,
+    };
+
     local content_buffer = vim.api.nvim_create_buf(false, true);
     Module.state[modal_id].content_buffer = content_buffer;
     --Initialize a buffer namespaced state table
@@ -287,6 +302,7 @@ function Module.show(message, opts)
         configure_input_buffer(modal_id);
         local input_window = vim.api.nvim_open_win(input_buffer, false, layout.input)
         Module.state[modal_id].input_window = input_window;
+        configure_input_window(modal_id);
         attach_input_keymaps(modal_id);
         vim.api.nvim_set_current_win(input_window)
         vim.cmd("startinsert")
