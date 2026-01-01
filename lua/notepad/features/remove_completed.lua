@@ -10,9 +10,16 @@ local function remove_completed()
     --  - Archived: written to the archive file
     local remaining, archived = {}, {}
     --Iterate line-by-line
+    local in_completed_item = false;
     for _, line in ipairs(lines) do
         --Determine if the task is completed / checked
         if line:match("%- %`%[x%]%`") then
+            in_completed_item = true;
+        end
+        if line:match("%- %`%[%s?%]%`") then
+            in_completed_item = false;
+        end
+        if in_completed_item then
             --Insert into archive table
             table.insert(archived, line)
         else
