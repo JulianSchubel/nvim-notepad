@@ -20,17 +20,40 @@ Lazy.nvim out of the box.
 ## Keymaps
 
 - `<leader>nn`: Open the note picker.
+
+### Notepad Buffer Commands
+
+Within a note buffer:
 - `<leader>ni`: Add a new note item.
 - `<leader>nx`: Toggle a note item as complete / incomplete.
 - `<leader>nr`: Remove completed note items.
+
+### Create a note
+
+In the note picker:
+
+- Press `<Esc>` to enter command mode.
+- Press `c` to open the create note prompt.
+
+In the create note prompt:
+
+- Enter the desired notename.
+- Cancel by pressing `<Esc>`.
+
+### Create a daily note
+
+In the note picker:
+- Press `<Esc>` to enter command mode.
+- Press `t` to create a daily note or open today's note if it exists.
 
 ### Delete a note
 
 In the note picker:
 
-- Press `d` to delete the selected note
-- Confirm with `y`
-- Cancel with `n` or `<Esc>`
+- Press `<Esc>` to enter command mode.
+- Press `d` to delete the selected note.
+- Confirm with `y`.
+- Cancel with `n` or `<Esc>`.
 
 Deleted notes are removed from disk immediately.
 

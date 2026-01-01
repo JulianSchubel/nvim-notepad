@@ -24,7 +24,7 @@ local function daily_note()
 end
 
 local function confirm_delete(note, on_done)
-    local _, modal_buf = modal.show({
+    local modal_id = modal.show({
         "Delete note [y/n]?",
         "",
         note,
@@ -36,46 +36,72 @@ local function confirm_delete(note, on_done)
     local buf = vim.api.nvim_get_current_buf()
     --Set keymaps for the current buffer only
     vim.keymap.set("n", "y", function()
-        modal.close(modal_buf)
+        modal.close(modal_id)
         local ok, err = require("notepad").delete(note, require("notepad.config").opts)
         if not ok then
             modal.show(err, { title = "Error" })
         end
         if on_done then on_done(ok) end
     end, { buffer = buf })
-    vim.keymap.set("n", "n", function() modal.close(modal_buf) end, { buffer = buf })
-    vim.keymap.set("n", "<Esc>", function() modal.close(modal_buf) end, { buffer = buf })
+    vim.keymap.set("n", "n", function() modal.close(modal_id) end, { buffer = buf })
+    vim.keymap.set("n", "<Esc>", function() modal.close(modal_id) end, { buffer = buf })
 end
 
 --Prompt the user to input the new notes name
 local function prompt_new_note(opts, previous, retry_count)
     local result = 0;
-    vim.ui.input(
-        {
-            prompt = "Note name:",
-            default = previous
-        },
-        function(name)
-            if not name then
-                result = -1
-                return
-            end
-
-            if require("notepad.files").is_valid_notename(name) then
-                --Create the note
-                require("notepad").create(name)
-                return
-            else
-                --Notify the user that the name provided was invalid
-                local prefix = ''
-                if retry_count > 0 then
-                    prefix = '\n'
-                end
-                vim.notify(prefix .. "Invalid note name", vim.log.levels.ERROR)
-                result = prompt_new_note(opts, name, retry_count + 1)
-            end
+    local on_submit = function(name)
+        if not name then
+            result = -1
+            return
         end
-    )
+
+        if require("notepad.files").is_valid_notename(name) then
+            --Create the note
+            require("notepad").create(name)
+            return
+        else
+            --Notify the user that the name provided was invalid
+            local prefix = ''
+            if retry_count > 0 then
+                prefix = '\n'
+            end
+            vim.notify(prefix .. "Invalid note name", vim.log.levels.ERROR)
+            result = -1
+        end
+    end
+    modal.show("Please enter a note name: ", {
+        input = {
+            enabled = true,
+            on_submit = on_submit,
+        }
+    });
+--    vim.ui.input(
+--        {
+--            prompt = "Note name:",
+--            default = previous
+--        },
+--        function(name)
+--            if not name then
+--                result = -1
+--                return
+--            end
+--
+--            if require("notepad.files").is_valid_notename(name) then
+--                --Create the note
+--                require("notepad").create(name)
+--                return
+--            else
+--                --Notify the user that the name provided was invalid
+--                local prefix = ''
+--                if retry_count > 0 then
+--                    prefix = '\n'
+--                end
+--                vim.notify(prefix .. "Invalid note name", vim.log.levels.ERROR)
+--                result = prompt_new_note(opts, name, retry_count + 1)
+--            end
+--        end
+--    )
     return result
 end
 
