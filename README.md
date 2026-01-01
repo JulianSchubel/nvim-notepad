@@ -13,7 +13,6 @@ Lazy.nvim out of the box.
 
 - Persistent notes stored on disk
 - Picker-based note selection
-- Native Neovim highlight groups (no custom colors required)
 - No background services or external dependencies
 - Supporting commands to add new note items and remove completed note items.
 
