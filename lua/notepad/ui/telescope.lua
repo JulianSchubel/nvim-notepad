@@ -45,6 +45,7 @@ local function confirm_delete(note, on_done)
     end, { buffer = buf })
     vim.keymap.set("n", "n", function() modal.close(modal_id) end, { buffer = buf })
     vim.keymap.set("n", "<Esc>", function() modal.close(modal_id) end, { buffer = buf })
+    vim.keymap.set("i", "<Esc>", function() modal.close(modal_id) end, { buffer = buf })
 end
 
 --Prompt the user to input the new notes name
