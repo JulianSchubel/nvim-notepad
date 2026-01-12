@@ -3,12 +3,17 @@ local files = require("notepad.files")
 local window = require("notepad.window")
 local features = require("notepad.features")
 local telescope = require("notepad.ui.telescope")
-local modal = require("notepad.ui.modal")
+local metadata = require("notepad.features.flashcards.metadata_store")
 
 local Module = {}
 
 function Module.setup(opts)
-    config.setup(opts)
+    -- Set Module options
+    config.setup(opts);
+
+    -- Fetch stored metadata
+    metadata.deserialize();
+
     --Toggle item as complete / incomplete
     vim.keymap.set("n", "<leader>nx", features.toggle)
     --Remove completed items
@@ -28,6 +33,33 @@ function Module.setup(opts)
         "<cmd>Notepad<cr>",
         { desc = "Open Neovim Notepad" }
     )
+
+    -- Create test command
+    vim.api.nvim_create_user_command("NotepadTest", function()
+        require("plenary.busted").run()
+    end, {})
+
+    vim.api.nvim_create_user_command("NotepadDueToday", function()
+        require("notepad.features.flashcards.ui.telescope.due_today").open({
+            vault_path = require("notepad.config").vault_path,
+        })
+    end, {})
+
+    vim.api.nvim_create_user_command("NotepadDailyReview", function()
+        require("notepad.features.flashcards.daily").run()
+    end, {})
+
+    vim.keymap.set("n", "<leader>Fr", function()
+        require("notepad.features.flashcards.daily").run()
+    end, { desc = "Notepad: Daily review" })
+
+--    vim.api.nvim_create_autocmd("VimEnter", {
+--        callback = function()
+--            require("notepad.features.flashcards.daily").run()
+--        end,
+--    })
+
+
 end
 
 function Module.open(name)

@@ -45,22 +45,22 @@ local function confirm_delete(note, on_done)
     end, { buffer = buf })
     vim.keymap.set("n", "n", function() modal.close(modal_id) end, { buffer = buf })
     vim.keymap.set("n", "<Esc>", function() modal.close(modal_id) end, { buffer = buf })
-    vim.keymap.set("i", "<Esc>", function() modal.close(modal_id) end, { buffer = buf })
 end
 
 --Prompt the user to input the new notes name
 local function prompt_new_note(opts, previous, retry_count)
     local result = 0;
-    local on_submit = function(name)
+    local on_submit = function(args)
+        local name = args.value;
         if not name then
             result = -1
+            args.close()
             return
         end
 
         if require("notepad.files").is_valid_notename(name) then
             --Create the note
             require("notepad").create(name)
-            return
         else
             --Notify the user that the name provided was invalid
             local prefix = ''
@@ -70,6 +70,7 @@ local function prompt_new_note(opts, previous, retry_count)
             vim.notify(prefix .. "Invalid note name", vim.log.levels.ERROR)
             result = -1
         end
+        args.close();
     end
     modal.show("Please enter a note name: ", {
         input = {
@@ -136,6 +137,9 @@ function Module.open(opts)
                 --argument
                 require("notepad").open(entry, opts)
             end)
+--            map("i", "<Esc>", function(bufnr)
+--                actions.close(bufnr)
+--            end)
             --Create a note
             map("n", "c", function(bufnr)
                 actions.close(bufnr)

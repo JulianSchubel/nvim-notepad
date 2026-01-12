@@ -23,15 +23,15 @@ end
 --Attach keymaps to handle input submission and cancellation
 local function attach_input_keymaps(modal_id)
     local buffer = Module.state[modal_id].input_buffer
-    local close = function () Module.close(modal_id) end
+    local modal_id_local = modal_id
+    local close = function () Module.close(modal_id_local) end
 
     vim.keymap.set("i", "<CR>", function()
         local line = vim.api.nvim_get_current_line()
         local value = vim.trim(line:gsub("^> ", ""))
 
         if type(Module.state[modal_id].on_submit) == "function" then
-            Module.state[modal_id].on_submit(value)
-            close();
+            Module.state[modal_id].on_submit({value=value, close=close});
         end
     end, { buffer = buffer })
 
@@ -168,6 +168,7 @@ local function configure_content_buffer(modal_id)
 
     --Disable everything except dismissal; ensures that the window feels like a modal
     vim.bo[buffer].buftype = "nofile";
+    vim.bo[buffer].filetype = Module.opts.input.filetype;
     vim.bo[buffer].swapfile = false;
     vim.bo[buffer].readonly = true;
     vim.bo[buffer].modifiable = false;
@@ -229,7 +230,8 @@ local default = {
     title = "Message",
     input = {
         enabled = false,
-        on_submit = function () end;
+        on_submit = function () end,
+        filetype = "none",
     }
 }
 
@@ -305,8 +307,11 @@ function Module.show(message, opts)
         Module.state[modal_id].input_window = input_window;
         configure_input_window(modal_id);
         attach_input_keymaps(modal_id);
+
         vim.api.nvim_set_current_win(input_window)
         vim.cmd("startinsert")
+    else
+        vim.api.nvim_set_current_win(content_window)
     end
     Module.attach_autocommands(modal_id);
     return modal_id;

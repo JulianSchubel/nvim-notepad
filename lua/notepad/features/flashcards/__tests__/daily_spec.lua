@@ -1,0 +1,6 @@
+describe("daily review", function()
+    it("can be required without error", function()
+        require("notepad.features.flashcards.daily")
+        assert.is_true(true)
+    end)
+end)
