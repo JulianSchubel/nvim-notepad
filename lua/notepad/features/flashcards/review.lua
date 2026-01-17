@@ -1,48 +1,34 @@
 -- notepad/features/flashcards/review.lua
-local fsrs    = require("notepad.features.flashcards.fsrs.fsrs")
-local schema  = require("notepad.features.flashcards.schema")
-local storage = require("notepad.features.flashcards.storage")
-local metadata = require("notepad.features.flashcards.metadata_store")
+local fsrs     = require("notepad.features.flashcards.fsrs.fsrs")
+local schema   = require("notepad.features.flashcards.schema")
+local metadata = require("notepad.features.flashcards.metadata")
 
 local M = {}
 
 function M.start(card)
-    card.metadata = card.metadata or {}
+    assert(card.id, "card missing note_id")
 
-    -- Always initialize FSRS state
-    local fsrs_state = schema.ensure(card.metadata.fsrs)
-        or schema.default_fsrs_state()
+    local note = metadata._state.notes[card.id]
+    assert(note, "note not found in metadata store")
 
-    card.metadata.fsrs = fsrs_state
+    note.fsrs = schema.ensure(note.fsrs) or schema.default_fsrs_state()
 
     return {
-        card  = card,
-        fsrs  = fsrs_state,
+        note  = note,
         start = os.time(),
     }
 end
 
-
 function M.apply_rating(session, rating)
-    assert(session.fsrs, "review session has no fsrs state")
     local now = os.time()
 
-    local next_state = fsrs.review(
-        session.fsrs,
-        rating,
-        now
-    )
-
-    -- fsrs.review MUST return a state
+    local next_state = fsrs.review(session.note.fsrs, rating, now)
     assert(next_state, "fsrs.review returned nil")
+    next_state.last_review = now;
 
-    session.card.metadata.fsrs = next_state
-    session.fsrs = next_state
+    session.note.fsrs = next_state
 
-    if session.card.path and vim.loop.fs_stat(session.card.path) then
-        metadata.serialize()
-        --storage.write_card(session.card)
-    end
+    metadata.serialize()
 
     return next_state
 end

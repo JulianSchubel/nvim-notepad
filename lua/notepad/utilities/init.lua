@@ -7,7 +7,9 @@ local Module = {
     },
     string = {
         trim = require("notepad.utilities.trim"),
-    }
+    },
+    fs = require("notepad.utilities.files"),
+    hash = require("notepad.utilities.hash"),
 }
 
 return Module

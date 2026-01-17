@@ -23,8 +23,7 @@ end
 --Attach keymaps to handle input submission and cancellation
 local function attach_input_keymaps(modal_id)
     local buffer = Module.state[modal_id].input_buffer
-    local modal_id_local = modal_id
-    local close = function () Module.close(modal_id_local) end
+    local close = function () Module.close(modal_id) end
 
     vim.keymap.set("i", "<CR>", function()
         local line = vim.api.nvim_get_current_line()
@@ -32,6 +31,7 @@ local function attach_input_keymaps(modal_id)
 
         if type(Module.state[modal_id].on_submit) == "function" then
             Module.state[modal_id].on_submit({value=value, close=close});
+            close()
         end
     end, { buffer = buffer })
 
@@ -45,6 +45,45 @@ local function attach_content_keymaps(modal_id)
     vim.keymap.set("n", "<Esc>", close, { buffer = buffer, nowait = true });
     --vim.keymap.set("n", "<CR>", close, { buffer = buffer, nowait = true });
     -- vim.keymap.set("n", "q", close, { buffer = buffer, nowait = true });
+end
+
+local function add_vertical_padding(modal_id)
+    local buffer = Module.state[modal_id].content_buffer;
+    local namespace_id = Module.state[modal_id].hl_ns;
+    local top = Module.opts.padding.top;
+    local bottom = Module.opts.padding.bottom;
+    local line_count = vim.api.nvim_buf_line_count(buffer)
+
+    -- Top padding
+    for i = 1, top do
+        vim.api.nvim_buf_set_extmark(buffer, namespace_id, 0, 0, {
+            virt_lines = { { { "", "" } } },
+            virt_lines_above = true,
+        })
+    end
+
+    -- Bottom padding
+    for i = 1, bottom do
+        vim.api.nvim_buf_set_extmark(buffer, namespace_id, line_count - 1, 0, {
+            virt_lines = { { { "", "" } } },
+            virt_lines_above = false,
+        })
+    end
+end
+
+local function configure_window_margins(modal_id)
+    local window = Module.state[modal_id].content_window;
+    local left = Module.opts.padding.left;
+    local right = Module.opts.padding.right;
+
+    -- Disable columns that steal horizontal space
+    vim.wo[window].number = false
+    vim.wo[window].relativenumber = false
+    vim.wo[window].foldcolumn = "0"
+    vim.wo[window].signcolumn = "yes:" .. left
+
+    -- Right margin via statuscolumn spacer (0.9+)
+    vim.wo[window].statuscolumn   = string.rep(" ", right)
 end
 
 --Compute the window layout configuration
@@ -147,6 +186,7 @@ end
 --Helper function to set content buffer options
 local function configure_content_buffer(modal_id)
     local buffer = Module.state[modal_id].content_buffer
+    add_vertical_padding(modal_id);
 
     --  ∙ Built-in Neovim in highlight groups:
     --    / -------------------------------------------/
@@ -170,12 +210,15 @@ local function configure_content_buffer(modal_id)
     vim.bo[buffer].buftype = "nofile";
     vim.bo[buffer].filetype = Module.opts.input.filetype;
     vim.bo[buffer].swapfile = false;
-    vim.bo[buffer].readonly = true;
-    vim.bo[buffer].modifiable = false;
+--    vim.bo[buffer].readonly = true;
+--    vim.bo[buffer].modifiable = false;
+    vim.bo[buffer].readonly = false;
+    vim.bo[buffer].modifiable = true;
+    vim.bo[buffer].bufhidden = "wipe"
 
     -- Ensure Treesitter highlighting works in scratch buffers
     if vim.treesitter and vim.treesitter.start then
-        pcall(vim.treesitter.start, buffer, "markdown")
+        pcall(vim.treesitter.start, buffer, Module.opts.input.filetype)
     end
 end
 
@@ -183,6 +226,10 @@ end
 local function configure_content_window(modal_id)
     local window = Module.state[modal_id].content_window
     local ns_id = Module.state[modal_id].hl_ns
+
+    -- Apply visual padding
+    configure_window_margins(modal_id);
+
     --Define modal highlights
     vim.api.nvim_set_hl(ns_id, "NormalFloat", { bg = "#1f2430" })
     vim.api.nvim_set_hl(ns_id, "FloatBorder", { bg = "#1f2430", fg = "#6b7089" })
@@ -193,6 +240,7 @@ local function configure_content_window(modal_id)
     vim.wo[window].cursorline =false;
     -- Set window transparency
     vim.wo[window].winblend = Module.opts.transparency or 0;
+    vim.wo[window].conceallevel = 2
 end
 
 --Helper function to set input buffer options
@@ -200,8 +248,10 @@ local function configure_input_buffer(modal_id)
     local buffer = Module.state[modal_id].input_buffer
     vim.bo[buffer].buftype = "prompt"
     vim.bo[buffer].swapfile = false
-    vim.bo[buffer].modifiable = true
+--    vim.bo[buffer].modifiable = true
     vim.bo[buffer].bufhidden = "wipe"
+    vim.bo[buffer].readonly = false;
+    vim.bo[buffer].modifiable = true;
     vim.fn.prompt_setprompt(buffer, "> ")
 end
 --Helper function to set input window options
@@ -219,6 +269,7 @@ local function configure_input_window(modal_id)
     vim.wo[window].cursorline =false;
     -- Set window transparency
     vim.wo[window].winblend = Module.opts.transparency or 0;
+    vim.wo[window].conceallevel = 2
 end
 
 --Set default options
@@ -228,6 +279,12 @@ local default = {
     max_width = 80,
     max_height = 20,
     title = "Message",
+    padding = {
+        top = 2,
+        bottom = 2,
+        left = 2,
+        right = 2
+    },
     input = {
         enabled = false,
         on_submit = function () end,
@@ -247,10 +304,9 @@ function Module.show(message, opts)
     --Wrap lines that exceed configured length
     content = utilities.text.wrap_lines(content, Module.opts.max_width - PADDING);
 
-    --Add padding for alignment to message content
     local lines = vim.list_extend(
         { "" },
-        vim.tbl_map(function(line) return "  " .. line .. "  " end, content)
+        vim.tbl_map(function(line) return line end, content)
     );
 
     --Add dismissal prompt to message content

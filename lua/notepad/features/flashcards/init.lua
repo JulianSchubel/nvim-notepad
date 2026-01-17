@@ -7,3 +7,7 @@
         }
 ]]
 
+-- io.lua -> discovers files, computes hashes
+-- parser.lua -> extracts semantic flashcards from text
+-- metadata.lua -> attaches FSRS + stats by stable ID
+-- query.lua -> determines which cards matter now.

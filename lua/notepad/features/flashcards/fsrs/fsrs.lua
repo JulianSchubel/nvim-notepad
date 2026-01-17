@@ -1,8 +1,9 @@
--- Lua port of the official FSRS (Free Spaced Repitition Scheduler) algorithm
--- Pure FSRS scheduler
+local clamp = require("notepad.utilities.clamp");
+
+-- Lua implementation of the official FSRS (Free Spaced Repitition Scheduler) algorithm
 local M = {}
 
--- FSRS ratings (reference)
+-- Ratings (reference)
 M.RATING = {
     AGAIN = 1,
     HARD  = 2,
@@ -10,17 +11,12 @@ M.RATING = {
     EASY  = 4,
 }
 
--- Official FSRS default weights (13)
+-- Default weights
 M.DEFAULT_W = {
     0.4, 0.6, 2.4, 5.8, 4.93,
     0.94, 0.86, 0.01, 1.49,
     0.14, 0.94, 2.18, 0.05
 }
-
--- Clamp helper
-local function clamp(x, min, max)
-    return math.max(min, math.min(max, x))
-end
 
 -- Forgetting curve: r = e^(-t / s)
 local function forgetting_curve(elapsed_days, stability)
@@ -40,7 +36,7 @@ function M.init_difficulty()
     return 5.0
 end
 
--- Core FSRS transition
+-- Core FSRS state transition
 function M.next_state(state, rating, elapsed_days, w)
     w = w or M.DEFAULT_W
 

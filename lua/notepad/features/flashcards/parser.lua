@@ -1,4 +1,3 @@
-local metadata = require("notepad.features.flashcards.metadata_store")
 local utilities = require("notepad.utilities")
 -- Parse markdown into flashcards
 local M = {}
@@ -42,10 +41,12 @@ local function parse_callouts(lines, source)
             table.insert(flashcards, {
                 question = question or "",
                 answer   = table.concat(answer_lines, "\n"),
+                note_id  = source.note_id,
                 source   = {
                     path = source.path,
                     line = source.line,
                     type = "callout",
+                    hash = source.hash,
                 },
             })
         else
@@ -81,10 +82,12 @@ local function parse_qna_pairs(lines, source)
             table.insert(flashcards, {
                 question = question,
                 answer   = answer,
+                note_id  = source.note_id,
                 source   = {
                     path = source.path,
                     line = source.line,
                     type = "qna",
+                    hash = source.hash,
                 },
             })
             question = nil -- reset after pairing
@@ -109,10 +112,12 @@ local function parse_inline(lines, source)
                 table.insert(flashcards, {
                     question = utilities.string.trim(front),
                     answer   = utilities.string.trim(back),
+                    note_id  = source.note_id,
                     source   = {
                         path = source.path,
                         line = source.line,
                         type = "inline",
+                        hash = source.hash,
                     },
                 })
             end
@@ -195,16 +200,18 @@ function M.parse_files(input)
 
     for _, file in ipairs(files) do
         local lines = file.lines or file.content
-
         if type(lines) == "string" then
             lines = vim.split(lines, "\n", { plain = true })
         end
-
         assert(type(lines) == "table", "file must have lines[] or content")
+        assert(file.hash, "file.hash missing before parsing")
+
 
         local result = M.parse_file(lines, {
             path = file.path or "",
             line = 1,
+            hash = file.hash,
+            note_id = file.note and file.note.id or nil,
         })
 
         vim.list_extend(cards, result.cards)

@@ -10,7 +10,7 @@ local M = {}
 function M.open(opts)
     opts = opts or {}
 
-    -- Lazy-load Telescope (TEST SAFE)
+    -- Lazy-load Telescope
     local ok, pickers = pcall(require, "telescope.pickers")
     if not ok then
         error("Telescope is required for flashcard UI")
@@ -32,29 +32,31 @@ function M.open(opts)
                 }
             end,
         }),
-        previewer = previewers.new_buffer_previewer({
-            define_preview = function(self, entry)
-                vim.api.nvim_buf_set_lines(
-                    self.state.bufnr,
-                    0,
-                    -1,
-                    false,
-                    { entry.question }
-                )
-                vim.bo[self.state.bufnr].filetype = "markdown"
-            end,
-        }),
+--        previewer = previewers.new_buffer_previewer({
+--            define_preview = function(self, entry)
+--                vim.api.nvim_buf_set_lines(
+--                    self.state.bufnr,
+--                    0,
+--                    -1,
+--                    false,
+--                    { entry.question }
+--                )
+--                vim.bo[self.state.bufnr].filetype = "markdown"
+--            end,
+--        }),
         sorter = conf.generic_sorter(opts),
         attach_mappings = function(prompt_bufnr, map)
             map("i", "<CR>", function()
                 local entry = require("telescope.actions.state").get_selected_entry()
                 require("telescope.actions").close(prompt_bufnr)
 
-                review_modal.open(entry.value, function()
-                    vim.schedule(function()
-                        M.open(opts)
+                if entry then 
+                    review_modal.open(entry.value, function()
+                        vim.schedule(function()
+                            M.open(opts)
+                        end)
                     end)
-                end)
+                end;
             end)
             return true
         end,
