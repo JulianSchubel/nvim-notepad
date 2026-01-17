@@ -15,6 +15,11 @@ Lazy.nvim out of the box.
 - Picker-based note selection
 - No background services or external dependencies
 - Supporting commands to add new note items and remove completed note items.
+- (Alpha) Flashhcards utilising the free spaced repetition scheduler (FSRS) algorithm (compatible with Obsidian markdown files). Supports three
+  definitions of a flashcard:
+  1. Inline: Single line q :: a
+  2. Obsidian Callout: >[!flashcard]. Multiline question and answer, separated by blank line
+  3. Multiline QnA: Q::* A::*
 
 ## Keymaps
 
