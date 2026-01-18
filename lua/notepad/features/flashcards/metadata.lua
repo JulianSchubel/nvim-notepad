@@ -1,5 +1,7 @@
--- Metadata store for flashcard notes
+-- Metadata for flashcard notes
 --
+-- Stores metadata for the note (FSRS and canonical id for the note) in JSON
+-- 
 -- Identity rules:
 -- 1. hash not seen before           -> new note
 -- 2. hash seen + same path          -> unchanged
@@ -28,10 +30,12 @@ end
 -- -----------------------------------
 -- Deserialize
 -- -----------------------------------
+-- Deserialize flashcard metadata
+-- @returns table metadata state {paths: table, hashes: string[], notes: table}
 function M.deserialize()
     local FLASHCARD_ROOT =
         vim.fn.stdpath("data")
-        .. require("notepad.config").opts.notepad_dir
+        .. require("notepad.config").opts._notepad_dir
         .. "/.flashcards"
 
     local STORE = FLASHCARD_ROOT .. "/flashcards.json"
@@ -58,6 +62,7 @@ end
 -- -----------------------------------
 -- Serialize
 -- -----------------------------------
+-- Serialize flashcard metadata
 function M.serialize()
     assert(M._state, "Metadata store not loaded")
 
@@ -98,8 +103,8 @@ function M.resolve(path, hash)
     local hashes = M._state.hashes
     local notes  = M._state.notes
 
-    -- Known hash → same logical note
-    local id     = hashes[hash]
+    -- Known hash means the same logical note
+    local id = hashes[hash]
     if id then
         local note = notes[id]
         assert(note, "corrupt metadata: hash mapped to missing note")

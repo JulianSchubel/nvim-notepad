@@ -1,18 +1,24 @@
+-- Extract flashcard content from files
 local utilities = require("notepad.utilities")
--- Parse markdown into flashcards
 local M = {}
 
+-- -------------------------------------
 -- Utility: strip leading "> " safely
+-- -------------------------------------
 local function strip_quote(line)
     return line:gsub("^>%s?", "")
 end
 
---[[ Parse Obsidian flashcard callouts
-    Supported pattern:
-        ∙ A line with > [!flashcard])
-        ∙ First paragraph -> question
-        ∙ Remaining content -> answer
-]]
+-- --------------------------------------------
+-- Parse Obsidian flashcard callouts
+-- --------------------------------------------
+-- @example
+--
+--      >[!flashcard]
+--      What is a computer?
+--
+--      A programmable device capable of executing logical instructions.
+--
 local function parse_callouts(lines, source)
     local flashcards = {}
     local i = 1
@@ -58,16 +64,18 @@ local function parse_callouts(lines, source)
 end
 
 
---[[ Question and Answer Pairs
-    Supported Pattern
-        ∙ Question line -> Q:: What is Lua?
-        ∙ Answer line A:: A lightweight embeddable scripting language.
-        ∙ Where a flashcard tag (#flashcard) is indicated
-        ∙ Example: 
-            Q:: What is FSRS? 
-            A:: FSRS is a modern spaced repetition algorithm
-                designed to optimize long-term memory.
---]]
+-- -----------------------------------------------------------
+-- Parse Multiline Question (Q::*) and Answer (A::*) Pairs
+-- -----------------------------------------------------------
+-- @example 
+--
+--      Q:: What is Lua?
+--      A:: A lightweight embeddable scripting language.
+--
+--      Q:: What is FSRS? 
+--      A:: FSRS is a modern spaced repetition algorithm
+--          designed to optimize long-term memory.
+--
 local function parse_qna_pairs(lines, source)
     assert(type(lines) == "table", "parse_qna_pairs expects lines[]")
 
@@ -97,12 +105,13 @@ local function parse_qna_pairs(lines, source)
     return flashcards
 end
 
---[[ 
-    Supported Pattern
-        ∙ Single line
-        ∙ First `::` splits question / answer
-        ∙ Example: What is the capital of France? :: Paris
-]]
+-- ------------------------------------------------------
+-- Inline ` :: ` Delimited Question and Answer Pairs
+-- ------------------------------------------------------
+-- @example
+--
+--      What is the capital of France? :: Paris
+--
 local function parse_inline(lines, source)
     local flashcards = {}
     for _, line in ipairs(lines) do
@@ -129,24 +138,11 @@ end
 
 local schema = require("notepad.features.flashcards.schema")
 
--- Extracts flashcards from a list of content using the configured supported patterns
--- @returns a table of the form 
---  {
---        cards = [card],
---        raw = lines,
---        path = source.path,
---  }
---  where card is a table of the form
---  {   
---      question = utilities.string.trim(front),
---      answer   = utilities.string.trim(back),
---      source   = {
---          path = source.path,
---          line = source.line,
---          type = "inline",
---      },
---  }
---
+-- ------------------------------------------------------
+-- Extracts flashcards questions and ansers from file
+-- ------------------------------------------------------
+-- @param lines string[] | lines of the file content
+-- @param source table | file metadata (path, hash, etc.)
 function M.parse_file(lines, source)
     if type(lines) == "string" then
         lines = vim.split(lines, "\n", { plain = true })
@@ -164,23 +160,10 @@ function M.parse_file(lines, source)
     }
 end
 
--- Extracts content from a list of lists of content lines
--- @returns a table of the form 
---  {
---        cards = [card],
---        raw = lines,
---        path = source.path,
---  }
---  where card is a table of the form
---  {   
---      question = utilities.string.trim(front),
---      answer   = utilities.string.trim(back),
---      source   = {
---          path = source.path,
---          line = source.line,
---          type = "inline",
---      },
---  }
+-- ------------------------------------------
+-- Extracts flashcard content from files
+-- ------------------------------------------
+-- @param input table | string - An array of file content
 function M.parse_files(input)
     local files = input
 
@@ -203,7 +186,7 @@ function M.parse_files(input)
         if type(lines) == "string" then
             lines = vim.split(lines, "\n", { plain = true })
         end
-        assert(type(lines) == "table", "file must have lines[] or content")
+        assert(type(lines) == "table", "file must have .lines[] or .content property")
         assert(file.hash, "file.hash missing before parsing")
 
 
@@ -221,7 +204,9 @@ function M.parse_files(input)
 end
 
 
+-- ----------------------------------------------------
 -- Compatibility wrapper for tests and simple usage
+-- ----------------------------------------------------
 function M.parse(input)
     return M.parse_file(input, {
         path = "",

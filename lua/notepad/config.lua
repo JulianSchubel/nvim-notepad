@@ -8,15 +8,6 @@ local defaults = {
     height_ratio = 0.7,
     split_width = 40,
     border = "rounded",
---    files = {
---        notepad = vim.fn.stdpath("data") .. NOTEPAD_DIR .. "/notepad.md",
---        today = function()
---            return vim.fn.stdpath("data")
---                .. "/notepad/"
---                .. os.date("%Y-%m-%d")
---                .. ".md"
---        end,
---    },
     flashcards = {
         enabled = true,
         vault_path = "/home/js/projects/nvim-notepad/notepad_test_vault",

@@ -5,14 +5,18 @@ local schema = require("notepad.features.flashcards.schema")
 
 local M = {}
 
--- Returns a table of cards of the form
--- {
---  question: string,
---  answer: string,
---  path:string,
---  note_id = table,
---  fsrs: table
--- }
+-- ---------------------------------------
+-- Determine notes due for review
+-- ---------------------------------------
+--  @returns table 
+--  A list of card structures 
+--  {
+--      question:   string,
+--      answer:     string,
+--      path:       string,
+--      id:         string,
+--      fsrs:       table,
+--  }
 function M.due_today(vault_path)
     local now = os.time()
     local due_cards = {}
