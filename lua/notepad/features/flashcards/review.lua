@@ -3,7 +3,7 @@ local fsrs     = require("notepad.features.flashcards.fsrs.fsrs")
 local schema   = require("notepad.features.flashcards.schema")
 local metadata = require("notepad.features.flashcards.metadata")
 
-local M = {}
+local M        = {}
 
 function M.start(card)
     assert(card.id, "card missing note_id")
@@ -34,4 +34,3 @@ function M.apply_rating(session, rating)
 end
 
 return M
-

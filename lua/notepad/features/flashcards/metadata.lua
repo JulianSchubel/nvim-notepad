@@ -21,9 +21,9 @@ local function empty_state(root)
     return {
         version = 2,
         dir = { root = root },
-        paths = {},  -- path -> id
-        hashes = {}, -- hash -> id
-        notes = {},  -- id -> record
+        paths = {},  -- path: string
+        hashes = {}, -- hash: string[]
+        notes = {},  -- id: table[]
     }
 end
 
@@ -35,7 +35,7 @@ end
 function M.deserialize()
     local FLASHCARD_ROOT =
         vim.fn.stdpath("data")
-        .. require("notepad.config").opts._notepad_dir
+        .. require("notepad.config").opts.notepad_dir
         .. "/.flashcards"
 
     local STORE = FLASHCARD_ROOT .. "/flashcards.json"
