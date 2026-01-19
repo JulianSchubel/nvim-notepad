@@ -9,7 +9,7 @@ local function toggle()
         line = line:gsub("%- %`%[%s?%]%`", "- `[x]`", 1)
     elseif line:match("%- %`%[x%]%`") then
         --Replace the checked occurence with an unchecked indicator
-        line = line:gsub("%- %`%[x%]%`", "- `[ ]`", 1)
+        line = line:gsub("%- %`%[x%]%`", "- `[]`", 1)
     else
         --Do nothing on no match; prevent accidental edits
         return
