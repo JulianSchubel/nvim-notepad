@@ -56,32 +56,49 @@ function M.open(card, on_done)
             else
                 title = "Incorrect"
             end
-            local new_modal_id = modal.show(new_content, {
-                title = title,
-                exit_prompt = false,
-                input = { enable = false, filetype = "markdown" }
-            });
-            local buf = modal.state[new_modal_id].content_buffer
 
-            for key, rating in pairs(RATINGS) do
-                vim.keymap.set("n", key, function()
-                    review.apply_rating(session, rating)
-                        modal.close(new_modal_id)
-                    if on_done and type(on_done) == "function" then on_done() end
-                end, { buffer = buf, nowait = true })
-            end
+
+            vim.schedule(function()
+                local rate_card = function(rating)
+                    rating.value = utilities.string.trim(rating.value);
+                    local is_valid_rating = false;
+                    vim.notify(tostring(rating.value), vim.log.levels.DEBUG);
+                    for key, value in pairs(RATINGS) do
+                        if key == rating.value then
+                            review.apply_rating(session, value);
+                            is_valid_rating = true;
+                        end
+                    end
+                   return is_valid_rating;
+                end;
+
+                local new_modal_id = modal.show(new_content, {
+                    title = title,
+                    exit_prompt = false,
+                    input = { enabled = true, on_submit = rate_card, filetype = "markdown" }
+                });
+                -- local buf = modal.state[new_modal_id].content_buffer
+
+--                for key, rating in pairs(RATINGS) do
+--                    vim.keymap.set("n", key, function()
+--                        review.apply_rating(session, rating)
+--                            modal.close(new_modal_id)
+--                        if on_done and type(on_done) == "function" then on_done() end
+--                    end, { buffer = buf, nowait = true })
+--                end
+            end);
         end},
     });
 
-    local buf = modal.state[modal_id].content_buffer
+    -- local buf = modal.state[modal_id].content_buffer
 
-    for key, rating in pairs(RATINGS) do
-        vim.keymap.set("n", key, function()
-            review.apply_rating(session, rating)
-                modal.close(modal_id)
-            if on_done and type(on_done) == "function" then on_done() end
-        end, { buffer = buf, nowait = true })
-    end
+--    for key, rating in pairs(RATINGS) do
+--        vim.keymap.set("n", key, function()
+--            review.apply_rating(session, rating)
+--                modal.close(modal_id)
+--            if on_done and type(on_done) == "function" then on_done() end
+--        end, { buffer = buf, nowait = true })
+--    end
 end
 
 return M
