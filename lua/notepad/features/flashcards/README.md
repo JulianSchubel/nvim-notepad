@@ -7,16 +7,16 @@ the following manner:
     ```sh
     Q :: A
     ```
-    Single line with the question and answer delimited by ` :: `. (note that the
-    delimiter is inclusive of a leading and trailing `' '` character.)
+    Single line with the question and answer delimited by ` :: `.
+    (note that the delimiter is inclusive of a leading and trailing `' '` character.)
 2. Multiline: 
     ```sh
     Q::... 
 
     A::...
     ```
-    All lines following the character sequence `Q::` are considered 
-    the question, and all lines following the character sequence `A::` are considered the answer.
+    All lines following the character sequence `Q::` are considered the question.
+    All lines following the character sequence `A::` are considered the answer.
 3. Obsidian-style Callout: 
     ```sh
     >[!flashcard] 
