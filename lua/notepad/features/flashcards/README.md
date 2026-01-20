@@ -28,7 +28,7 @@ the following manner:
 
 # Troubleshooting  
 
-To confirm that ratings have been implied you can inspect the metadata for all
+To confirm that ratings have been applied you can inspect the metadata for all
 currently registered flashcards by running the following:
 ```vim
 :lua print(vim.inspect(require("notepad.features.flashcards.metadata")._state.notes))
