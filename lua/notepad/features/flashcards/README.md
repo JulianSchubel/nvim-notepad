@@ -1,6 +1,6 @@
 # Flashcards  
 
-The flashcards feature adds staged repition flashcards with obsidian
+The flashcards feature adds spaced repition flashcards with obsidian
 compatibility in mind. Flashcard content is identitified in markdown files in
 the following manner:
 1. Inline: 
