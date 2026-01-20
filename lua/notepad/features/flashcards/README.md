@@ -8,7 +8,6 @@ the following manner:
     Q :: A
     ```
     Single line with the question and answer delimited by ` :: `.  
-
     (note that the delimiter is inclusive of a leading and trailing `' '` character.)
 2. Multiline: 
     ```sh
@@ -17,7 +16,6 @@ the following manner:
     A::...
     ```
     All lines following the character sequence `Q::` are considered the question.  
-
     All lines following the character sequence `A::` are considered the answer.
 3. Obsidian-style Callout: 
     ```sh
