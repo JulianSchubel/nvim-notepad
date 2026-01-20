@@ -7,8 +7,8 @@ the following manner:
     ```sh
     Q :: A
     ```
-    Single line with the question and answer delimited by `::` where the
-    delimiter is inclusive of a leading and trailing `' '` character.
+    Single line with the question and answer delimited by ` :: `. (note that the
+    delimiter is inclusive of a leading and trailing `' '` character.)
 2. Multiline: 
     ```sh
     Q::... 
