@@ -16,9 +16,18 @@ local RATINGS = {
 
 function M.open(card, on_done)
     local session = review.start(card)
-
+    vim.notify(utilities.misc.debug.dump_table(card.choices), vim.log.levels.DEBUG);
     local question = vim.split(card.question, "\n", { plain = true })
     local answer =  vim.split(card.answer, "\n", { plain = true })
+    local choices = {}
+    for index, choice in ipairs(card.choices) do
+        local c = tostring(index) .. ") " .. choice
+        vim.notify(utilities.misc.debug.dump_table(card.choices), vim.log.levels.DEBUG);
+        vim.list_extend(
+            choices,
+            vim.split(c, "\n", { plain = true })
+        );
+    end;
 
     local content_separator = {"", "---", ""}
 
@@ -37,10 +46,14 @@ function M.open(card, on_done)
     local content = {}
     vim.list_extend(content, question);
     vim.list_extend(content, content_separator);
+    if #choices > 0 then
+        vim.list_extend(content, choices);
+        vim.list_extend(content, content_separator);
+    end;
     vim.list_extend(content, footer);
 
-    local modal_id;
-    modal_id = modal.show(content, {
+
+    local modal_id = modal.show(content, {
         title = "Flashcard Review",
         exit_prompt = false,
         input = { enabled = true, filetype = "markdown", on_submit = function(args)
@@ -51,7 +64,11 @@ function M.open(card, on_done)
             vim.list_extend(new_content, content_separator);
             vim.list_extend(new_content, footer);
             local title = "";
-            if utilities.string.trim(args.value) == table.concat(answer) then
+            vim.notify(tostring(card.answer_index), vim.log.levels.DEBUG);
+            local trimmed_input = utilities.string.trim(args.value);
+            if card.answer_index and tonumber(trimmed_input) == card.answer_index then
+                title = "Correct"
+            elseif trimmed_input == table.concat(answer) then
                 title = "Correct"
             else
                 title = "Incorrect"
@@ -63,6 +80,7 @@ function M.open(card, on_done)
                     rating.value = utilities.string.trim(rating.value);
                     local is_valid_rating = false;
                     vim.notify(tostring(rating.value), vim.log.levels.DEBUG);
+
                     for key, value in pairs(RATINGS) do
                         if key == rating.value then
                             review.apply_rating(session, value);
@@ -77,28 +95,29 @@ function M.open(card, on_done)
                     exit_prompt = false,
                     input = { enabled = true, on_submit = rate_card, filetype = "markdown" }
                 });
-                -- local buf = modal.state[new_modal_id].content_buffer
+                 local buf = modal.state[new_modal_id].content_buffer
 
---                for key, rating in pairs(RATINGS) do
---                    vim.keymap.set("n", key, function()
---                        review.apply_rating(session, rating)
---                            modal.close(new_modal_id)
---                        if on_done and type(on_done) == "function" then on_done() end
---                    end, { buffer = buf, nowait = true })
---                end
+                for key, rating in pairs(RATINGS) do
+                    vim.keymap.set("n", key, function()
+                        review.apply_rating(session, rating)
+                            modal.close(new_modal_id)
+                        if on_done and type(on_done) == "function" then on_done() end
+                    end, { buffer = buf, nowait = true })
+                end
             end);
         end},
+
     });
 
-    -- local buf = modal.state[modal_id].content_buffer
+     local buf = modal.state[modal_id].content_buffer
 
---    for key, rating in pairs(RATINGS) do
---        vim.keymap.set("n", key, function()
---            review.apply_rating(session, rating)
---                modal.close(modal_id)
---            if on_done and type(on_done) == "function" then on_done() end
---        end, { buffer = buf, nowait = true })
---    end
+    for key, rating in pairs(RATINGS) do
+        vim.keymap.set("n", key, function()
+            review.apply_rating(session, rating)
+                modal.close(modal_id)
+            if on_done and type(on_done) == "function" then on_done() end
+        end, { buffer = buf, nowait = true })
+    end
 end
 
 return M

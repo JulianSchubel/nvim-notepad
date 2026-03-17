@@ -53,6 +53,10 @@ function Module.setup(opts)
         require("notepad.features.flashcards.daily").run()
     end, { desc = "Notepad: Daily review" })
 
+
+    vim.keymap.set("n", "<leader>FI", function()
+        vim.cmd("lua print(vim.inspect(require('notepad.features.flashcards.metadata')._state.notes))")
+    end,  {desc = "Notepad: inspect flashcard metadata"})
     --    vim.api.nvim_create_autocmd("VimEnter", {
     --        callback = function()
     --            require("notepad.features.flashcards.daily").run()

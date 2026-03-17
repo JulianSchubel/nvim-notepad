@@ -65,7 +65,8 @@ end
 
 
 -- -----------------------------------------------------------
--- Parse Multiline Question (Q::*) and Answer (A::*) Pairs
+-- Parse Multiline Question (Q::*) and Answer (A::*) Pairs with optional
+-- choices (C::*) (choices must be supplied between a question and answer)
 -- -----------------------------------------------------------
 -- @example 
 --
@@ -76,20 +77,38 @@ end
 --      A:: FSRS is a modern spaced repetition algorithm
 --          designed to optimize long-term memory.
 --
+--      Q:: 2 + 2 is?
+--      C:: 1
+--      C:: 3
+--      A:: 4
+--
 local function parse_qna_pairs(lines, source)
     assert(type(lines) == "table", "parse_qna_pairs expects lines[]")
 
     local flashcards = {}
     local question = nil
+    local answer = nil
+    local choices = {}
+    local choice_index = 1;
 
     for _, line in ipairs(lines) do
-        if line:match("^Q::") then
-            question = line:gsub("^Q::%s*", "")
-        elseif line:match("^A::") and question then
-            local answer = line:gsub("^A::%s*", "")
+        local prefix, content = line:match("^([QCA])::%s*(.+)")
+
+        if prefix == "Q" then
+            question = content;
+        elseif prefix == "C" then
+            table.insert(choices, choice_index, content);
+            choice_index = choice_index + 1;
+        elseif prefix == "A" then
+            answer = content;
+            if choice_index > 1 then
+                table.insert(choices, choice_index, content);
+            end
             table.insert(flashcards, {
                 question = question,
                 answer   = answer,
+                answer_index = choice_index,
+                choices  = choices,
                 note_id  = source.note_id,
                 source   = {
                     path = source.path,
@@ -99,6 +118,11 @@ local function parse_qna_pairs(lines, source)
                 },
             })
             question = nil -- reset after pairing
+            if choice_index > 0 then
+                answer = nil -- reset after pairing (in the case that there are choices
+                choices = {} --reset choices
+                choice_index = 0; -- reset choice_index
+            end
         end
     end
 
@@ -136,6 +160,19 @@ local function parse_inline(lines, source)
     return flashcards
 end
 
+-- -----------------------------------------------------------
+-- Parse Multiple-choice Answer Question (Q::*) and Answer (A::*) Pairs
+-- -----------------------------------------------------------
+-- @example 
+--
+--      Q:: What is Lua?
+--      A:: A lightweight embeddable scripting language.
+--
+--      Q:: What is FSRS? 
+--      A:: FSRS is a modern spaced repetition algorithm
+--          designed to optimize long-term memory.
+--
+
 local schema = require("notepad.features.flashcards.schema")
 
 -- ------------------------------------------------------
@@ -149,6 +186,7 @@ function M.parse_file(lines, source)
     end
 
     local flashcards = {}
+    -- each parser should match only their case and nothing else.
     vim.list_extend(flashcards, parse_qna_pairs(lines, source))
     vim.list_extend(flashcards, parse_callouts(lines, source))
     vim.list_extend(flashcards, parse_inline(lines, source))

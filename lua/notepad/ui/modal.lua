@@ -31,7 +31,7 @@ local function attach_input_keymaps(modal_id)
 
         if type(Module.state[modal_id].on_submit) == "function" then
             Module.state[modal_id].on_submit({value=value, close=close});
-            ---close()
+            close(modal_id)
         end
     end, { buffer = buffer })
 

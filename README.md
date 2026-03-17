@@ -5,7 +5,9 @@ A lightweight, file-backed notepad for Neovim.
 Nvim-notepad opens Markdown files in a floating or split window, allowing you to
 read and write notes safely while keeping your editing context intact. It
 supports single or multiple notepad files, daily notes, Telescope picking, and
-Lazy.nvim out of the box.
+Lazy.nvim out of the box. 
+
+Spaced repitition flashcards are available as an optional feature.
 
 ![](assets/nvim-notepad.png)
 
@@ -15,11 +17,10 @@ Lazy.nvim out of the box.
 - Picker-based note selection
 - No background services or external dependencies
 - Supporting commands to add new note items and remove completed note items.
-- (Alpha) Flashhcards utilising the free spaced repetition scheduler (FSRS) algorithm (compatible with Obsidian markdown files). Supports three
-  definitions of a flashcard (See the parser.lua file for regex):
-  1. Inline QnA: Single line question and answer. Formatted as: q :: a
-  2. Obsidian Callout: >[!flashcard]. Multiline question and answer, separated by blank line
-  3. Multiline QnA: Multiline question and answer. Formatted as:  Q::* A::*
+- Spaced repetition flashcards. Supports three definitions of a flashcard:
+  1. Inline
+  2. Multiline
+  3. Obsidian-style callout
 
 ## Keymaps
 
@@ -80,7 +81,7 @@ return {
 }
 ```
 
-To opt into the Flashcards alpha
+With flashcards enabled
 
 ```lua
 return {
@@ -100,7 +101,7 @@ return {
             },
             flashcards = {
                 enabled = true,
-                vault_path = vim.fn.expand(<path to obsidian vault or markdown containing directory>)
+                vault_path = vim.fn.expand(<path to obsidian vault or other compatible flashcard directory>)
             },
         });
     end

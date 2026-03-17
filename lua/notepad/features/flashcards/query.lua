@@ -39,6 +39,8 @@ function M.due_today(vault_path)
                     table.insert(due_cards, {
                         question = card.question,
                         answer   = card.answer,
+                        answer_index = card.answer_index or 0,
+                        choices  = card.choices or {},
                         path     = card.source.path,
                         id       = note.id,
                         fsrs     = note.fsrs

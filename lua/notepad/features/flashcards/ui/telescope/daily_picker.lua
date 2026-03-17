@@ -50,7 +50,7 @@ function M.open(opts)
                 local entry = require("telescope.actions.state").get_selected_entry()
                 require("telescope.actions").close(prompt_bufnr)
 
-                if entry then 
+                if entry then
                     review_modal.open(entry.value, function()
                         vim.schedule(function()
                             M.open(opts)
