@@ -9,10 +9,10 @@ local Module = {
     }
 }
 
---Create a namespace for buffer highlighting
+-- Create a namespace for buffer highlighting
 local namespace = vim.api.nvim_create_namespace("Nvim-notepad.modal");
 
---Normalizes a multiline string into a table of lines
+-- Normalizes a multiline string into a table of lines
 local function normalize(msg)
     if type(msg) == "string" then
         return vim.split(msg, "\n", { plain = true })
@@ -20,7 +20,7 @@ local function normalize(msg)
     return msg
 end
 
---Attach keymaps to handle input submission and cancellation
+-- Attach keymaps to handle input submission and cancellation
 local function attach_input_keymaps(modal_id)
     local buffer = Module.state[modal_id].input_buffer
     local close = function () Module.close(modal_id) end
@@ -31,7 +31,8 @@ local function attach_input_keymaps(modal_id)
 
         if type(Module.state[modal_id].on_submit) == "function" then
             Module.state[modal_id].on_submit({value=value, close=close});
-            close(modal_id)
+        else
+            close()
         end
     end, { buffer = buffer })
 
@@ -348,8 +349,10 @@ function Module.show(message, opts)
 
     --Set the content window state
     Module.state[modal_id].content_window = content_window;
+
     --Configure the modals window
     configure_content_window(modal_id);
+
     --Attach a resize handler and record the associated id as state
     --Set keymaps for the buffer (close method)
     attach_content_keymaps(modal_id);
@@ -377,6 +380,7 @@ end
 function Module.close(modal_id)
     --We have to access namespaced values at module level; values can change
     --across invocations
+
     local content_window = Module.state[modal_id].content_window;
     local input_window = Module.state[modal_id].input_window;
     -- Close windows
